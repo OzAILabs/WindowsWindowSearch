@@ -1,0 +1,35 @@
+<Project Sdk="WixToolset.Sdk/5.0.2">
+  <!--
+    Builds WindowsWindowSearch-<version>-x64.msi:  dotnet build installer -c Release
+    WiX 5.0.2 is used deliberately: it is MS-RL licensed. WiX 6+ ships under the
+    "Open Source Maintenance Fee" EULA, which can require a fee for commercial use.
+  -->
+  <PropertyGroup>
+    <OutputName>WindowsWindowSearch-$(Version)-x64</OutputName>
+    <InstallerPlatform>x64</InstallerPlatform>
+    <AppProject>$(MSBuildThisFileDirectory)..\src\WindowSearcher.App\WindowSearcher.App.csproj</AppProject>
+    <AppPublishDir>$([System.IO.Path]::GetTempPath())WindowsWindowSearch.publish\</AppPublishDir>
+    <DefineConstants>PublishDir=$(AppPublishDir);ProductVersion=$(Version);AssetsDir=$(MSBuildThisFileDirectory)..\assets</DefineConstants>
+    <!--
+      Per-machine package: ProgramMenuFolder is the all-users Start menu, which ICE38/43/57/91 can't
+      tell (they assume a per-user profile). ICE60 only asks for a language on versioned data files.
+    -->
+    <SuppressIces>ICE38;ICE43;ICE57;ICE60;ICE91</SuppressIces>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WixToolset.UI.wixext" Version="5.0.2" />
+    <PackageReference Include="WixToolset.Util.wixext" Version="5.0.2" />
+  </ItemGroup>
+
+  <!--
+    Self-contained publish (no .NET install needed on the target machine), precompiled
+    (ReadyToRun) for faster startup, bundled into a single exe plus a few native DLLs. Few files
+    matter: with Restart Manager disabled by policy, Windows Installer's fallback files-in-use check
+    during upgrades is slow per file. Runs through the CLI so the win-x64 restore happens too.
+  -->
+  <Target Name="PublishApp" BeforeTargets="BeforeBuild">
+    <RemoveDir Directories="$(AppPublishDir)" />
+    <Exec Command="dotnet publish &quot;$(AppProject)&quot; -c Release -r win-x64 --self-contained true -p:PublishReadyToRun=true -p:PublishSingleFile=true -p:DebugType=None -p:DebugSymbols=false -p:SatelliteResourceLanguages=en -o &quot;$(AppPublishDir.TrimEnd('\'))&quot; --nologo" />
+  </Target>
+</Project>

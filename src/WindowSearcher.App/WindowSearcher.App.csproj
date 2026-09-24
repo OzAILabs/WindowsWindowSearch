@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <!-- Windows SDK TFM gives us Windows.Media.Ocr and the other WinRT APIs. -->
+    <TargetFramework>net10.0-windows10.0.22621.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <!-- Only for the tray icon (NotifyIcon) and GDI+ image scaling/encoding off the UI thread. -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>..\..\assets\WindowSearcher.ico</ApplicationIcon>
+    <AssemblyName>WindowSearcher</AssemblyName>
+    <!-- File description: the name Windows shows on the app's notifications and in Task Manager. -->
+    <AssemblyTitle>Windows Window Search</AssemblyTitle>
+    <RootNamespace>WindowSearcher.App</RootNamespace>
+    <!-- DPI awareness is set in app.manifest for WPF; the WinForms-specific advice doesn't apply. -->
+    <NoWarn>$(NoWarn);WFO0003</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- WPF and WinForms share many type names; keep WinForms types fully qualified. -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+    <Using Include="System.IO" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WindowSearcher.Core\WindowSearcher.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FlaUI.UIA3" Version="5.0.0" />
+  </ItemGroup>
+
+</Project>

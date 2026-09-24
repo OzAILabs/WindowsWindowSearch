@@ -1,0 +1,184 @@
+<Window x:Class="WindowSearcher.App.UI.LauncherWindow" x:ClassModifier="internal"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="clr-namespace:WindowSearcher.App.UI"
+        Title="Windows Window Search"
+        Width="1180" Height="700"
+        WindowStyle="None" ResizeMode="NoResize" Topmost="True" ShowInTaskbar="False"
+        Background="{DynamicResource BgBrush}"
+        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+        FontFamily="Segoe UI Variable Text, Segoe UI" FontSize="13"
+        Foreground="{DynamicResource TextBrush}"
+        TextOptions.TextFormattingMode="Display">
+
+    <Window.Resources>
+        <Style x:Key="ResultContainer" TargetType="ListBoxItem">
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="6,1" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="Bd" Background="Transparent" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource HoverBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SelectionBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="TileContainer" TargetType="ListBoxItem" BasedOn="{StaticResource ResultContainer}">
+            <Setter Property="Margin" Value="6" />
+            <Setter Property="Width" Value="264" />
+        </Style>
+
+        <DataTemplate x:Key="ResultTemplate">
+            <Grid Margin="10,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="28" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Image Source="{Binding Icon}" Width="20" Height="20" VerticalAlignment="Top" Margin="0,2,0,0"
+                       RenderOptions.BitmapScalingMode="HighQuality" />
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="14" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{Binding Subtitle}" Foreground="{DynamicResource SubTextBrush}" FontSize="12"
+                               TextTrimming="CharacterEllipsis" Margin="0,1,0,0" />
+                    <TextBlock ui:Highlight.Text="{Binding Snippet}" Foreground="{DynamicResource SubTextBrush}" FontSize="12"
+                               TextTrimming="CharacterEllipsis" Margin="0,3,0,0"
+                               Visibility="{Binding HasSnippet, Converter={StaticResource BoolToVisibility}}" />
+                </StackPanel>
+            </Grid>
+        </DataTemplate>
+
+        <DataTemplate x:Key="TileTemplate">
+            <StackPanel Margin="8">
+                <Border Height="150" Background="{DynamicResource PanelBrush}" CornerRadius="4">
+                    <Grid>
+                        <Image Source="{Binding Thumbnail}" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" />
+                        <Image Source="{Binding Icon}" Width="32" Height="32" Opacity="0.5"
+                               Visibility="{Binding ThumbPath, Converter={StaticResource NullToVisible}}" />
+                    </Grid>
+                </Border>
+                <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                    <Image Source="{Binding Icon}" Width="16" Height="16" Margin="0,0,6,0" />
+                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                               MaxWidth="218" />
+                </StackPanel>
+                <TextBlock Text="{Binding Subtitle}" Foreground="{DynamicResource SubTextBrush}" FontSize="11"
+                           TextTrimming="CharacterEllipsis" Margin="0,2,0,0" />
+            </StackPanel>
+        </DataTemplate>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Search box -->
+        <Border Padding="18,14" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource BorderBrush}">
+            <Grid>
+                <TextBlock Text="&#xE721;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="18"
+                           Foreground="{DynamicResource SubTextBrush}" VerticalAlignment="Center" />
+                <TextBox x:Name="SearchBox" Margin="34,0,160,0" FontSize="20" BorderThickness="0"
+                         Background="Transparent" Foreground="{DynamicResource TextBrush}"
+                         CaretBrush="{DynamicResource TextBrush}" VerticalContentAlignment="Center"
+                         TextChanged="OnSearchTextChanged" />
+                <TextBlock x:Name="Placeholder" Margin="37,0,0,0" IsHitTestVisible="False" FontSize="20"
+                           Text="Search windows, tabs and page text…" Foreground="{DynamicResource SubTextBrush}"
+                           VerticalAlignment="Center" />
+                <TextBlock x:Name="ModeLabel" HorizontalAlignment="Right" VerticalAlignment="Center"
+                           Foreground="{DynamicResource SubTextBrush}" FontSize="12" />
+            </Grid>
+        </Border>
+
+        <!-- List + preview -->
+        <Grid x:Name="ListPanel" Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="480" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <ListBox x:Name="ResultsList" Background="Transparent" Foreground="{DynamicResource TextBrush}" BorderThickness="0" Padding="0,6"
+                     ItemTemplate="{StaticResource ResultTemplate}"
+                     ItemContainerStyle="{StaticResource ResultContainer}"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling"
+                     VirtualizingPanel.ScrollUnit="Pixel"
+                     SelectionChanged="OnSelectionChanged" MouseDoubleClick="OnItemActivated"
+                     Focusable="False" />
+            <Border Grid.Column="1" Background="{DynamicResource PanelBrush}" BorderThickness="1,0,0,0"
+                    BorderBrush="{DynamicResource BorderBrush}" Padding="20">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Image x:Name="PreviewImage" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" />
+                    <StackPanel x:Name="PreviewEmpty" VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <Image x:Name="PreviewIcon" Width="48" Height="48" Opacity="0.6" />
+                        <TextBlock x:Name="PreviewEmptyText" Foreground="{DynamicResource SubTextBrush}" Margin="0,12,0,0"
+                                   TextAlignment="Center" TextWrapping="Wrap" MaxWidth="360"
+                                   Text="No preview yet. One is saved the first time you view this window or tab." />
+                    </StackPanel>
+                    <StackPanel Grid.Row="1" Margin="0,16,0,0">
+                        <TextBlock x:Name="PreviewTitle" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap" />
+                        <TextBlock x:Name="PreviewUrl" Foreground="{DynamicResource AccentBrush}" TextTrimming="CharacterEllipsis"
+                                   Margin="0,4,0,0" />
+                        <TextBlock x:Name="PreviewSnippet" Foreground="{DynamicResource SubTextBrush}" TextWrapping="Wrap"
+                                   MaxHeight="60" Margin="0,6,0,0" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Thumbnail grid -->
+        <ListBox x:Name="GridList" Grid.Row="1" Visibility="Collapsed" Background="Transparent" Foreground="{DynamicResource TextBrush}" BorderThickness="0"
+                 Padding="10" ItemTemplate="{StaticResource TileTemplate}"
+                 ItemContainerStyle="{StaticResource TileContainer}"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                 MouseLeftButtonUp="OnItemActivated" Focusable="False">
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel />
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+        </ListBox>
+
+        <!-- Status bar -->
+        <Border Grid.Row="2" Padding="18,8" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource BorderBrush}">
+            <Grid>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock x:Name="StatusText" Foreground="{DynamicResource SubTextBrush}" FontSize="12" />
+                    <Button x:Name="SeedButton" Margin="18,0,0,0" Visibility="Collapsed" Focusable="False" Cursor="Hand"
+                            Click="OnSeedClick" ToolTip="Switch through Edge tabs that have no saved text or preview yet, then put everything back">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <TextBlock x:Name="Label" FontSize="12" Foreground="{DynamicResource AccentBrush}"
+                                           Text="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}" />
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="Label" Property="TextDecorations" Value="Underline" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </StackPanel>
+                <TextBlock HorizontalAlignment="Right" Foreground="{DynamicResource SubTextBrush}" FontSize="12"
+                           Text="↑↓ select   ·   Enter open   ·   Tab grid/list   ·   Esc close" />
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

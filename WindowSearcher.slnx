@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/WindowSearcher.App/WindowSearcher.App.csproj" />
+    <Project Path="src/WindowSearcher.Core/WindowSearcher.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/WindowSearcher.Tests/WindowSearcher.Tests.csproj" />
+  </Folder>
+</Solution>
