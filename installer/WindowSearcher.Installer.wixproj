@@ -13,8 +13,9 @@
     <!--
       Per-machine package: ProgramMenuFolder is the all-users Start menu, which ICE38/43/57/91 can't
       tell (they assume a per-user profile). ICE60 only asks for a language on versioned data files.
+      ICE61 flags that downgrades are allowed, which is intentional (rollback to an older release).
     -->
-    <SuppressIces>ICE38;ICE43;ICE57;ICE60;ICE91</SuppressIces>
+    <SuppressIces>ICE38;ICE43;ICE57;ICE60;ICE61;ICE91</SuppressIces>
   </PropertyGroup>
 
   <ItemGroup>

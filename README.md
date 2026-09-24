@@ -77,6 +77,7 @@ before upgrading or uninstalling. The app is self-contained, so no .NET install 
   kept. Delete that folder to remove them.
 - Every released MSI is kept in `releases\` (not in git; they're 70 MB each).
 - The MSI isn't code-signed, so Windows SmartScreen may warn before running it.
+- The installer uses WiX 5.0.2 (MS-RL). WiX 6+ is under a maintenance-fee EULA, so don't upgrade it without checking.
 
 ## Going back to an earlier version
 
@@ -88,7 +89,6 @@ before upgrading or uninstalling. The app is self-contained, so no .NET install 
   those installers refuse to replace a newer version.
 - **Source:** the project is in git with a tag per release (`git tag`). For example,
   `git checkout v1.0.5 -- .` restores that release's files, and rebuilding gives its installer.
-- The installer uses WiX 5.0.2 (MS-RL). WiX 6+ is under a maintenance-fee EULA, so don't upgrade it without checking.
 
 ## Build and test
 
