@@ -44,26 +44,24 @@
     </StandardDirectory>
 
     <!--
-      The app runs in the tray: end it before InstallValidate checks for files in use (upgrade and
-      uninstall), then give Windows a few seconds to finish tearing the process down. Where policy
-      disables Restart Manager (DisableAutomaticApplicationShutdown), Windows Installer's fallback
-      check spins indefinitely if it sees a windowless process still holding the files, which is what a
-      just-killed process looks like. util:CloseApplication can't help: it runs after InstallValidate.
-      Immediate actions run as the signed-in user; both are ignored when the app isn't running.
+      The app runs in the tray: before InstallValidate checks for files in use (upgrade and uninstall),
+      close it and wait until its files are really free (installer\close-app.ps1, embedded below as
+      -EncodedCommand; a unit test keeps the two in sync). Right after the app exits, security software
+      re-opens the exe for ~3 s. If InstallValidate runs then, and policy disables Restart Manager
+      (DisableAutomaticApplicationShutdown), Windows Installer's fallback files-in-use check
+      (msi!GetModuleUsage -> performance-data query of every process's memory map) takes 15+ minutes.
+      util:CloseApplication can't help: it runs after InstallValidate. Immediate, so it runs as the
+      signed-in user (SYSTEM under a management tool). Return is ignored: a failure only means no wait.
     -->
+    <!-- Long arguments live in a property (no length limit); the action's own target must stay under 255 characters (ICE03). -->
+    <Property Id="CloseAppArgs" Value="-NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand IwAgAFIAdQBuACAAYgB5ACAAdABoAGUAIABpAG4AcwB0AGEAbABsAGUAcgAgAGoAdQBzAHQAIABiAGUAZgBvAHIAZQAgAEkAbgBzAHQAYQBsAGwAVgBhAGwAaQBkAGEAdABlACAAKAB1AHAAZwByAGEAZABlACAAYQBuAGQAIAB1AG4AaQBuAHMAdABhAGwAbAApAC4ACgAjACAARQBuAGQAcwAgAFcAaQBuAGQAbwB3AHMAIABXAGkAbgBkAG8AdwAgAFMAZQBhAHIAYwBoACwAIAB0AGgAZQBuACAAdwBhAGkAdABzACAAdQBuAHQAaQBsACAAbgBvAG4AZQAgAG8AZgAgAGkAdABzACAAZgBpAGwAZQBzACAAaABhAHMAIABiAGUAZQBuACAAbwBwAGUAbgAgAGIAeQAgAGEAbgB5AHQAaABpAG4AZwAgAGYAbwByACAAMgAgAHMACgAjACAAKABhAHQAIABsAGUAYQBzAHQAIAA1ACAAcwAgAGEAZgB0AGUAcgAgAGMAbABvAHMAaQBuAGcALAAgAGEAdAAgAG0AbwBzAHQAIAA2ADAAIABzACkALgAgAFIAaQBnAGgAdAAgAGEAZgB0AGUAcgAgAHQAaABlACAAYQBwAHAAIABlAHgAaQB0AHMALAAgAHMAZQBjAHUAcgBpAHQAeQAgAHMAbwBmAHQAdwBhAHIAZQAgAHIAZQAtAG8AcABlAG4AcwAKACMAIAB0AGgAZQAgAGUAeABlACAAZgBvAHIAIABhAGIAbwB1AHQAIAAzACAAcwA7ACAAaQBmACAASQBuAHMAdABhAGwAbABWAGEAbABpAGQAYQB0AGUAIAByAHUAbgBzACAAdABoAGUAbgAsACAAVwBpAG4AZABvAHcAcwAgAEkAbgBzAHQAYQBsAGwAZQByACcAcwAgAGYAYQBsAGwAYgBhAGMAawAgAGYAaQBsAGUAcwAtAGkAbgAtAHUAcwBlACAAYwBoAGUAYwBrAAoAIwAgACgAdQBzAGUAZAAgAHcAaABlAHIAZQAgAHAAbwBsAGkAYwB5ACAAZABpAHMAYQBiAGwAZQBzACAAUgBlAHMAdABhAHIAdAAgAE0AYQBuAGEAZwBlAHIAKQAgAHcAYQBsAGsAcwAgAGUAdgBlAHIAeQAgAHAAcgBvAGMAZQBzAHMAJwBzACAAbQBlAG0AbwByAHkAIABtAGEAcAAgAGEAbgBkACAAYwBhAG4AIAB0AGEAawBlACAAMQA1ACsAIABtAGkAbgAuAAoAIwAgAEMAaABlAGMAawBzACAAdQBzAGUAIAByAGUAYQBkACAAYQBjAGMAZQBzAHMAIAB3AGkAdABoACAAbgBvACAAcwBoAGEAcgBpAG4AZwAsACAAcwBvACAAdABoAGkAcwAgAGEAbABzAG8AIAB3AG8AcgBrAHMAIABmAG8AcgAgAGEAIABzAHQAYQBuAGQAYQByAGQAIAB1AHMAZQByAC4ACgAkAGQAaQByACAAPQAgAEoAbwBpAG4ALQBQAGEAdABoACAAJABlAG4AdgA6AFAAcgBvAGcAcgBhAG0ARgBpAGwAZQBzACAAJwBXAGkAbgBkAG8AdwBzACAAVwBpAG4AZABvAHcAIABTAGUAYQByAGMAaAAnAAoARwBlAHQALQBQAHIAbwBjAGUAcwBzACAALQBOAGEAbQBlACAAVwBpAG4AZABvAHcAUwBlAGEAcgBjAGgAZQByACAALQBFAHIAcgBvAHIAQQBjAHQAaQBvAG4AIABTAGkAbABlAG4AdABsAHkAQwBvAG4AdABpAG4AdQBlACAAfAAgAFMAdABvAHAALQBQAHIAbwBjAGUAcwBzACAALQBGAG8AcgBjAGUAIAAtAEUAcgByAG8AcgBBAGMAdABpAG8AbgAgAFMAaQBsAGUAbgB0AGwAeQBDAG8AbgB0AGkAbgB1AGUACgBpAGYAIAAoAC0AbgBvAHQAIAAoAFQAZQBzAHQALQBQAGEAdABoACAALQBMAGkAdABlAHIAYQBsAFAAYQB0AGgAIAAkAGQAaQByACkAKQAgAHsAIABlAHgAaQB0ACAAMAAgAH0ACgAkAGYAaQBsAGUAcwAgAD0AIABAACgARwBlAHQALQBDAGgAaQBsAGQASQB0AGUAbQAgAC0ATABpAHQAZQByAGEAbABQAGEAdABoACAAJABkAGkAcgAgAC0ARgBpAGwAZQAgAC0ARQByAHIAbwByAEEAYwB0AGkAbwBuACAAUwBpAGwAZQBuAHQAbAB5AEMAbwBuAHQAaQBuAHUAZQApAAoAJABzAHcAIAA9ACAAWwBEAGkAYQBnAG4AbwBzAHQAaQBjAHMALgBTAHQAbwBwAHcAYQB0AGMAaABdADoAOgBTAHQAYQByAHQATgBlAHcAKAApAAoAJABmAHIAZQBlACAAPQAgADAACgB3AGgAaQBsAGUAIAAoACQAcwB3AC4ARQBsAGEAcABzAGUAZAAuAFQAbwB0AGEAbABTAGUAYwBvAG4AZABzACAALQBsAHQAIAA2ADAAKQAgAHsACgAgACAAIAAgACQAbABvAGMAawBlAGQAIAA9ACAAJABmAGEAbABzAGUACgAgACAAIAAgAGYAbwByAGUAYQBjAGgAIAAoACQAZgAgAGkAbgAgACQAZgBpAGwAZQBzACkAIAB7AAoAIAAgACAAIAAgACAAIAAgAHQAcgB5ACAAewAgACQAcwAgAD0AIABbAEkATwAuAEYAaQBsAGUAXQA6ADoATwBwAGUAbgAoACQAZgAuAEYAdQBsAGwATgBhAG0AZQAsACAAJwBPAHAAZQBuACcALAAgACcAUgBlAGEAZAAnACwAIAAnAE4AbwBuAGUAJwApADsAIAAkAHMALgBDAGwAbwBzAGUAKAApACAAfQAKACAAIAAgACAAIAAgACAAIABjAGEAdABjAGgAIABbAEkATwAuAEkATwBFAHgAYwBlAHAAdABpAG8AbgBdACAAewAgACQAbABvAGMAawBlAGQAIAA9ACAAJAB0AHIAdQBlADsAIABiAHIAZQBhAGsAIAB9AAoAIAAgACAAIAAgACAAIAAgAGMAYQB0AGMAaAAgAHsAIAB9AAoAIAAgACAAIAB9AAoAIAAgACAAIABpAGYAIAAoACQAbABvAGMAawBlAGQAKQAgAHsAIAAkAGYAcgBlAGUAIAA9ACAAMAAgAH0AIABlAGwAcwBlACAAewAgACQAZgByAGUAZQArACsAIAB9AAoAIAAgACAAIABpAGYAIAAoACQAZgByAGUAZQAgAC0AZwBlACAAOAAgAC0AYQBuAGQAIAAkAHMAdwAuAEUAbABhAHAAcwBlAGQALgBUAG8AdABhAGwAUwBlAGMAbwBuAGQAcwAgAC0AZwBlACAANQApACAAewAgAGIAcgBlAGEAawAgAH0ACgAgACAAIAAgAFMAdABhAHIAdAAtAFMAbABlAGUAcAAgAC0ATQBpAGwAbABpAHMAZQBjAG8AbgBkAHMAIAAyADUAMAAKAH0ACgBlAHgAaQB0ACAAMAANAAoA" />
     <CustomAction Id="SetCloseAppCmd" Property="WixQuietExecCmdLine"
-                  Value="&quot;[System64Folder]taskkill.exe&quot; /F /IM WindowSearcher.exe" />
+                  Value="&quot;[System64Folder]WindowsPowerShell\v1.0\powershell.exe&quot; [CloseAppArgs]" />
     <CustomAction Id="CloseRunningApp" BinaryRef="Wix4UtilCA_$(sys.BUILDARCHSHORT)" DllEntry="WixQuietExec"
-                  Execute="immediate" Return="ignore" />
-    <CustomAction Id="SetWaitCmd" Property="WixQuietExecCmdLine"
-                  Value="&quot;[System64Folder]PING.EXE&quot; -n 4 127.0.0.1" />
-    <CustomAction Id="WaitForAppExit" BinaryRef="Wix4UtilCA_$(sys.BUILDARCHSHORT)" DllEntry="WixQuietExec"
                   Execute="immediate" Return="ignore" />
     <InstallExecuteSequence>
       <Custom Action="SetCloseAppCmd" Before="CloseRunningApp" />
-      <Custom Action="CloseRunningApp" Before="SetWaitCmd" />
-      <Custom Action="SetWaitCmd" Before="WaitForAppExit" />
-      <Custom Action="WaitForAppExit" Before="InstallValidate" />
+      <Custom Action="CloseRunningApp" Before="InstallValidate" />
     </InstallExecuteSequence>
 
     <Feature Id="Main" Title="Windows Window Search" Level="1">
