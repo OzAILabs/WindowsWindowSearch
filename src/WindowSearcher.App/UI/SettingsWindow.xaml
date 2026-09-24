@@ -43,6 +43,19 @@
                 <CheckBox x:Name="PausedBox" Style="{StaticResource Option}" Content="Pause indexing" />
                 <TextBlock Style="{StaticResource Hint}" Margin="22,0,0,0"
                            Text="While paused, the app doesn't read or capture other apps. Search still works on what's already indexed." />
+                <Grid Style="{StaticResource Row}" Margin="0,14,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="230" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Search window" Style="{StaticResource FieldLabel}" VerticalAlignment="Top" Margin="0,6,0,0" />
+                    <StackPanel Grid.Column="1">
+                        <Button x:Name="ResetWindowButton" Content="Reset size and position" Style="{StaticResource DialogButton}"
+                                HorizontalAlignment="Left" Click="OnResetWindowClick" />
+                        <TextBlock Style="{StaticResource Hint}"
+                                   Text="Drag the search bar or status bar to move the search window, and its edges to resize it. It opens where you leave it." />
+                    </StackPanel>
+                </Grid>
 
                 <!-- Privacy -->
                 <TextBlock Text="Privacy" Style="{StaticResource SectionHeader}" />

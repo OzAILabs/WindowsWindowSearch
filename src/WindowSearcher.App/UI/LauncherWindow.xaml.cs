@@ -6,6 +6,7 @@ using System.Windows.Interop;
 using System.Windows.Threading;
 using WindowSearcher.App.Native;
 using WindowSearcher.App.Search;
+using WindowSearcher.Core;
 
 namespace WindowSearcher.App.UI;
 
@@ -15,6 +16,9 @@ internal partial class LauncherWindow : Window
     public const double TileImageHeight = 150;
     public const double TileTextWidth = 218;
     private const int PreviewDecodeWidth = 960;
+    // First-run size in DIPs, capped to the screen.
+    private const double DefaultWidth = 1180;
+    private const double DefaultHeight = 700;
 
     private readonly AppCore _core;
     private readonly DispatcherTimer _searchDebounce;
@@ -45,7 +49,33 @@ internal partial class LauncherWindow : Window
             var hwnd = new WindowInteropHelper(this).Handle;
             var round = 2;
             Win32.DwmSetWindowAttribute(hwnd, Win32.DWMWA_WINDOW_CORNER_PREFERENCE, ref round, sizeof(int));
+            HwndSource.FromHwnd(hwnd)?.AddHook(WndProc);
         };
+        // The key reminder would overlap the status text in a narrow window.
+        SizeChanged += (_, _) => KeyHint.Visibility = ActualWidth < 980 ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+    {
+        // The user finished moving or resizing the window: open it there next time.
+        if (msg == Win32.WM_EXITSIZEMOVE && WindowState == WindowState.Normal && Win32.GetWindowRect(hwnd, out var r))
+            LauncherPlacement.Save(new ScreenRect(r.Left, r.Top, r.Width, r.Height));
+        return IntPtr.Zero;
+    }
+
+    /// <summary>Dragging the search bar or status bar moves the window (the search box and links keep their clicks).</summary>
+    private void OnDragAreaMouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton != MouseButton.Left || e.ButtonState != MouseButtonState.Pressed) return;
+        e.Handled = true;
+        DragMove();
+    }
+
+    /// <summary>Forgets the saved size and position; the window opens centered on the pointer's screen again.</summary>
+    public void ResetPlacement()
+    {
+        LauncherPlacement.Clear();
+        if (IsVisible) PositionWindow();
     }
 
     public bool IsOpen => IsVisible;
@@ -65,7 +95,7 @@ internal partial class LauncherWindow : Window
         SearchBox.CaretIndex = SearchBox.Text.Length;
         _searchDebounce.Stop();
         RunSearch();
-        PositionOnActiveMonitor();
+        PositionWindow();
         Show();
         Activate();
         SearchBox.Focus();
@@ -84,21 +114,47 @@ internal partial class LauncherWindow : Window
         ThumbnailLoader.Clear();
     }
 
-    private void PositionOnActiveMonitor()
+    /// <summary>
+    /// Where the user last left the window, if that screen is still connected; otherwise centered on the screen
+    /// with the mouse pointer. Either way it's sized to fit that screen's work area.
+    /// </summary>
+    private void PositionWindow()
     {
         var hwnd = new WindowInteropHelper(this).EnsureHandle();
-        Win32.GetCursorPos(out var pt);
-        var monitor = Win32.MonitorFromPoint(pt, Win32.MONITOR_DEFAULTTONEAREST);
+        if (WindowState != WindowState.Normal) WindowState = WindowState.Normal;
+
+        var saved = LauncherPlacement.Load();
+        IntPtr monitor;
+        if (saved is { } s)
+        {
+            var rect = new Win32.RECT { Left = s.Left, Top = s.Top, Right = s.Right, Bottom = s.Bottom };
+            monitor = Win32.MonitorFromRect(ref rect, Win32.MONITOR_DEFAULTTONULL);
+            if (monitor == IntPtr.Zero) saved = null; // that screen is gone
+        }
+        else
+        {
+            monitor = IntPtr.Zero;
+        }
+        if (saved is null)
+        {
+            Win32.GetCursorPos(out var pt);
+            monitor = Win32.MonitorFromPoint(pt, Win32.MONITOR_DEFAULTTONEAREST);
+        }
+
         var info = new Win32.MONITORINFO { cbSize = System.Runtime.InteropServices.Marshal.SizeOf<Win32.MONITORINFO>() };
         if (!Win32.GetMonitorInfo(monitor, ref info)) return;
-        var work = info.rcWork;
-        // Move onto the monitor first so WPF rescales for its DPI, then center using the real size.
-        Win32.SetWindowPos(hwnd, IntPtr.Zero, work.Left, work.Top, 0, 0,
-            Win32.SWP_NOSIZE | Win32.SWP_NOZORDER | Win32.SWP_NOACTIVATE);
-        Win32.GetWindowRect(hwnd, out var r);
-        var x = work.Left + (work.Width - r.Width) / 2;
-        var y = work.Top + Math.Max(0, (work.Height - r.Height) / 3);
-        Win32.SetWindowPos(hwnd, IntPtr.Zero, x, y, 0, 0, Win32.SWP_NOSIZE | Win32.SWP_NOZORDER | Win32.SWP_NOACTIVATE);
+        var work = new ScreenRect(info.rcWork.Left, info.rcWork.Top, info.rcWork.Width, info.rcWork.Height);
+        var scale = Win32.GetDpiForMonitor(monitor, Win32.MDT_EFFECTIVE_DPI, out var dpi, out _) == 0 ? dpi / 96.0 : 1.0;
+        int Px(double dips) => (int)Math.Round(dips * scale);
+
+        var target = saved is { } placed
+            ? placed.FitInside(work, Px(MinWidth), Px(MinHeight))
+            : ScreenRect.CenteredIn(work, Px(DefaultWidth), Px(DefaultHeight), 0.94);
+
+        // Move onto the monitor first so WPF rescales for its DPI, then apply the final size and position.
+        const uint flags = Win32.SWP_NOZORDER | Win32.SWP_NOACTIVATE;
+        Win32.SetWindowPos(hwnd, IntPtr.Zero, target.Left, target.Top, 0, 0, flags | Win32.SWP_NOSIZE);
+        Win32.SetWindowPos(hwnd, IntPtr.Zero, target.Left, target.Top, target.Width, target.Height, flags);
     }
 
     private void OnSearchTextChanged(object sender, TextChangedEventArgs e)

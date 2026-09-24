@@ -11,6 +11,9 @@ internal static class AppPaths
     public static readonly string Settings = Path.Combine(Root, "settings.json");
     public static readonly string Log = Path.Combine(Root, "log.txt");
 
+    /// <summary>Where the user last moved or resized the search window.</summary>
+    public static readonly string LauncherPlacement = Path.Combine(Root, "launcher.json");
+
     /// <summary>Arguments handed from a second launch to the running instance.</summary>
     public static readonly string Command = Path.Combine(Root, "command.txt");
 

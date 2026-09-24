@@ -3,13 +3,19 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="clr-namespace:WindowSearcher.App.UI"
         Title="Windows Window Search"
-        Width="1180" Height="700"
-        WindowStyle="None" ResizeMode="NoResize" Topmost="True" ShowInTaskbar="False"
+        Width="1180" Height="700" MinWidth="640" MinHeight="420"
+        WindowStyle="None" ResizeMode="CanResize" Topmost="True" ShowInTaskbar="False"
         Background="{DynamicResource BgBrush}"
         BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
         FontFamily="Segoe UI Variable Text, Segoe UI" FontSize="13"
         Foreground="{DynamicResource TextBrush}"
         TextOptions.TextFormattingMode="Display">
+
+    <!-- Borderless, but resizable from every edge like a normal window. -->
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="0" ResizeBorderThickness="6" GlassFrameThickness="0" CornerRadius="0"
+                      UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
 
     <Window.Resources>
         <Style x:Key="ResultContainer" TargetType="ListBoxItem">
@@ -87,8 +93,9 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Search box -->
-        <Border Padding="18,14" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource BorderBrush}">
+        <!-- Search box; the bar around it moves the window. -->
+        <Border Padding="18,14" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource BorderBrush}"
+                Background="Transparent" MouseLeftButtonDown="OnDragAreaMouseDown">
             <Grid>
                 <TextBlock Text="&#xE721;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="18"
                            Foreground="{DynamicResource SubTextBrush}" VerticalAlignment="Center" />
@@ -107,8 +114,8 @@
         <!-- List + preview -->
         <Grid x:Name="ListPanel" Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="480" />
-                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="2*" MinWidth="300" />
+                <ColumnDefinition Width="3*" />
             </Grid.ColumnDefinitions>
             <ListBox x:Name="ResultsList" Background="Transparent" Foreground="{DynamicResource TextBrush}" BorderThickness="0" Padding="0,6"
                      ItemTemplate="{StaticResource ResultTemplate}"
@@ -156,8 +163,9 @@
             </ListBox.ItemsPanel>
         </ListBox>
 
-        <!-- Status bar -->
-        <Border Grid.Row="2" Padding="18,8" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource BorderBrush}">
+        <!-- Status bar; also moves the window. -->
+        <Border Grid.Row="2" Padding="18,8" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource BorderBrush}"
+                Background="Transparent" MouseLeftButtonDown="OnDragAreaMouseDown">
             <Grid>
                 <StackPanel Orientation="Horizontal">
                     <TextBlock x:Name="StatusText" Foreground="{DynamicResource SubTextBrush}" FontSize="12" />
@@ -176,8 +184,8 @@
                         </Button.Template>
                     </Button>
                 </StackPanel>
-                <TextBlock HorizontalAlignment="Right" Foreground="{DynamicResource SubTextBrush}" FontSize="12"
-                           Text="↑↓ select   ·   Enter open   ·   Tab grid/list   ·   Esc close" />
+                <TextBlock x:Name="KeyHint" HorizontalAlignment="Right" Foreground="{DynamicResource SubTextBrush}" FontSize="12"
+                           Text="↑↓ select   ·   Enter open   ·   Tab grid/list   ·   F1 help   ·   Esc close" />
             </Grid>
         </Border>
     </Grid>

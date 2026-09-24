@@ -130,6 +130,13 @@ internal partial class SettingsWindow : Window
 
     private void OnCancelClick(object sender, RoutedEventArgs e) => Close();
 
+    /// <summary>Takes effect right away (not on Save): the search window opens centered and at its default size again.</summary>
+    private void OnResetWindowClick(object sender, RoutedEventArgs e)
+    {
+        _core.Launcher.ResetPlacement();
+        ResetWindowButton.Content = "Reset done";
+    }
+
     private void OnResetClick(object sender, RoutedEventArgs e) =>
         Fill(new AppSettings(), StartWithWindowsBox.IsChecked == true); // shown only; nothing changes until Save
 

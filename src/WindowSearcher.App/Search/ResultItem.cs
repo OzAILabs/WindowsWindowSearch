@@ -99,6 +99,7 @@ internal sealed class ResultItem : INotifyPropertyChanged
 
     private static string? Host(string? url) =>
         url is not null && Uri.TryCreate(url, UriKind.Absolute, out var u) && !string.IsNullOrEmpty(u.Host)
+        && (u.Scheme == Uri.UriSchemeHttps || u.Scheme == Uri.UriSchemeHttp)
             ? u.Host.StartsWith("www.", StringComparison.OrdinalIgnoreCase) ? u.Host[4..] : u.Host
             : null;
 

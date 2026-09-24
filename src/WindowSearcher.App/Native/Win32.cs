@@ -66,7 +66,10 @@ internal static partial class Win32
     public const uint SWP_NOSIZE = 0x0001;
     public const uint SWP_NOZORDER = 0x0004;
     public const uint SWP_NOACTIVATE = 0x0010;
+    public const uint MONITOR_DEFAULTTONULL = 0;
     public const uint MONITOR_DEFAULTTONEAREST = 2;
+    public const int MDT_EFFECTIVE_DPI = 0;
+    public const int WM_EXITSIZEMOVE = 0x0232;
 
     [StructLayout(LayoutKind.Sequential)]
     public struct RECT
@@ -201,6 +204,12 @@ internal static partial class Win32
 
     [DllImport("user32.dll")]
     public static extern IntPtr MonitorFromPoint(POINT pt, uint flags);
+
+    [DllImport("user32.dll")]
+    public static extern IntPtr MonitorFromRect(ref RECT rect, uint flags);
+
+    [DllImport("shcore.dll")]
+    public static extern int GetDpiForMonitor(IntPtr monitor, int dpiType, out uint dpiX, out uint dpiY);
 
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
