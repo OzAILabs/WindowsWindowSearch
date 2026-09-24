@@ -1,0 +1,2 @@
+# Embedded byte-for-byte in installer\Package.wxs (see InstallerTests); keep its line endings stable.
+installer/close-app.ps1 text eol=lf
