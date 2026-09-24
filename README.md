@@ -10,7 +10,7 @@ preview of each one, and switches straight to it. No browser extension is needed
   Type to search, for example `token cost`.
 - **↑/↓** select, **Enter** switch to it (restores the window and selects the tab), **Tab** toggles the
   thumbnail grid, **F1** opens the user guide, **Esc** closes.
-- Drag the search bar or status bar to move the launcher and its edges to resize it. It reopens where it was left
+- Drag the shaded title bar (or the status bar) to move the launcher and its edges to resize it; × closes it. It reopens where it was left
   (`launcher.json` in the data folder), shrunk to fit if that screen is smaller. It falls back to the pointer's
   screen if that one is gone. **Settings → Reset size and position** forgets it.
 - Clicking the tray icon toggles the launcher. The tray menu has pause (the app then doesn't touch other

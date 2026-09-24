@@ -53,7 +53,7 @@
                         <Button x:Name="ResetWindowButton" Content="Reset size and position" Style="{StaticResource DialogButton}"
                                 HorizontalAlignment="Left" Click="OnResetWindowClick" />
                         <TextBlock Style="{StaticResource Hint}"
-                                   Text="Drag the search bar or status bar to move the search window, and its edges to resize it. It opens where you leave it." />
+                                   Text="Drag the search window's shaded title bar to move it, and its edges to resize it. It opens where you leave it." />
                     </StackPanel>
                 </Grid>
 

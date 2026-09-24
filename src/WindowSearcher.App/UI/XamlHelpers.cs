@@ -90,6 +90,9 @@ internal static class Theme
         Set(resources, "ScrollTrackBrush", light ? "#E6E6E6" : "#2E2E2E");
         Set(resources, "ScrollThumbBrush", light ? "#8C8C8C" : "#A0A0A0");
         Set(resources, "ScrollThumbHoverBrush", light ? "#5C5C5C" : "#D6D6D6");
+        // Search window title bar (the drag handle): visibly different from the window body.
+        Set(resources, "TitleBarBrush", light ? "#D9E6F4" : "#263447");
+        Set(resources, "TitleBarHoverBrush", light ? "#C8DAEE" : "#30445E");
     }
 
     private static void Set(ResourceDictionary resources, string key, string color)

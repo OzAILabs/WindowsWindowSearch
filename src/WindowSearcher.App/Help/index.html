@@ -166,7 +166,10 @@
   .mock .bar svg { width: 18px; height: 18px; stroke: var(--app-sub); fill: none; stroke-width: 2; flex: none; }
   .mock .bar .q { flex: 1; }
   .mock .bar .q::after { content: ""; display: inline-block; width: 1px; height: 20px; background: var(--app-text); margin-left: 2px; vertical-align: -3px; animation: blink 1.1s steps(1) infinite; }
-  .mock .bar .mode { font-size: 12px; color: var(--app-sub); }
+  .mock .titlebar { display: flex; align-items: center; gap: 10px; height: 32px; padding-left: 14px; background: #263447; border-bottom: 1px solid var(--app-border); color: var(--app-sub); font-size: 12px; }
+  .mock .titlebar .grip { font-size: 14px; }
+  .mock .titlebar span:nth-child(2) { flex: 1; }
+  .mock .titlebar .x { width: 42px; text-align: center; font-size: 11px; }
   @keyframes blink { 50% { opacity: 0; } }
   .mock .body { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); min-height: 300px; }
   .mock .list { padding: 6px 0; }
@@ -313,10 +316,10 @@
       <p class="lead">Results on the left, a preview of the selected one on the right, and a status line at the bottom.</p>
 
       <div class="mock" role="img" aria-label="Example of the search window with results for token cost">
+        <div class="titlebar"><span class="grip">⠿</span><span>Windows Window Search</span><span class="mode">List view</span><span class="x">✕</span></div>
         <div class="bar">
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
           <span class="q">token cost</span>
-          <span class="mode">List view</span>
         </div>
         <div class="body">
           <div class="list">
@@ -365,7 +368,7 @@
       </table></div>
 
       <h3>Moving and resizing</h3>
-      <p>Drag the search bar (around the search box) or the status line at the bottom to move the window, for example onto another screen. Drag any edge or corner to resize it. It opens where you left it, at the size you chose. If that screen is disconnected, it opens centered on the screen with the mouse pointer. To go back to the default, use <b>Settings → Search window → Reset size and position</b>.</p>
+      <p>Drag the shaded title bar at the top (the pointer turns into a four-way arrow) to move the window, for example onto another screen. The status line at the bottom works too. The <b>×</b> at the top right closes it, like <kbd>Esc</kbd>. Drag any edge or corner to resize it. It opens where you left it, at the size you chose. If that screen is disconnected, it opens centered on the screen with the mouse pointer. To go back to the default, use <b>Settings → Search window → Reset size and position</b>.</p>
 
       <h3>Grid view</h3>
       <p>Press <kbd>Tab</kbd> to switch between the list and a grid of large previews, which is handy when you remember what a window <em>looked</em> like. Typing filters the grid the same way. The tray menu's <b>Open grid view</b> opens straight into it.</p>
@@ -538,7 +541,7 @@
       </details>
       <details>
         <summary>The search window is too big or on the wrong screen</summary>
-        <p>Drag its edges to resize it, and drag the search bar or the status line to move it. It remembers the new size and place. The first time it opens, it's sized to fit the screen, and it's never larger than the screen it opens on.</p>
+        <p>Drag its edges to resize it, and drag the shaded title bar at the top to move it. It remembers the new size and place. The first time it opens, it's sized to fit the screen, and it's never larger than the screen it opens on.</p>
       </details>
       <details>
         <summary>A tab I know about only matches by its title</summary>

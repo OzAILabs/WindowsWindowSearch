@@ -63,7 +63,9 @@ internal partial class LauncherWindow : Window
         return IntPtr.Zero;
     }
 
-    /// <summary>Dragging the search bar or status bar moves the window (the search box and links keep their clicks).</summary>
+    private void OnCloseClick(object sender, RoutedEventArgs e) => HideLauncher();
+
+    /// <summary>Dragging the title bar or status bar moves the window (buttons and links keep their clicks).</summary>
     private void OnDragAreaMouseDown(object sender, MouseButtonEventArgs e)
     {
         if (e.ChangedButton != MouseButton.Left || e.ButtonState != MouseButtonState.Pressed) return;
