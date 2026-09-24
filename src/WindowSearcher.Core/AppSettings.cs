@@ -30,6 +30,12 @@ public sealed class AppSettings
     /// </summary>
     public List<string> ScreenshotOnlyDomains { get; set; } = ["admin.example.com"];
 
+    /// <summary>
+    /// true (default, since 1.0.5): read Edge's tabs and address bar without touching web pages; a page
+    /// is only read when its text is due. false: the 1.0.4 method, one search over the whole window.
+    /// </summary>
+    public bool ReadTabsWithoutPages { get; set; } = true;
+
     /// <summary>Domains whose pages are never captured or indexed (subdomains included).</summary>
     public List<string> ExcludedDomains { get; set; } = [];
 

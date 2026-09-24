@@ -56,6 +56,24 @@ public class AppSettingsTests
     [InlineData(null, false)]
     public void admin portal_is_screenshot_only_by_default(string? url, bool expected) =>
         Assert.Equal(expected, new AppSettings().IsScreenshotOnly(url));
+
+    [Fact]
+    public void Settings_files_without_new_options_get_the_defaults()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"ws-settings-{Guid.NewGuid():N}.json");
+        File.WriteAllText(path, """{ "Hotkey": "Ctrl+Alt+Q" }""");
+        try
+        {
+            var s = AppSettings.Load(path);
+            Assert.Equal("Ctrl+Alt+Q", s.Hotkey);
+            Assert.True(s.ReadTabsWithoutPages);
+            Assert.Contains("admin.example.com", s.ScreenshotOnlyDomains);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
 }
 
 public class FtsQueryTests

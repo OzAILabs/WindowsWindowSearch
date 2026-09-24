@@ -48,6 +48,7 @@ and restores your tabs. Sleeping tabs it wakes use more memory until Edge puts t
 - `ExcludedDomains`: pages on these domains (and their subdomains) are never captured or indexed.
 - `OcrOnlyProcesses`: apps read only through screenshots and OCR (filled in automatically for slow apps).
 - `IndexPrivateWindows`: also capture and index InPrivate windows (tray → **Include InPrivate windows**).
+- `ReadTabsWithoutPages`: read Edge's tabs and address bar without touching pages (default `true`; `false` = the 1.0.4 method).
 - `ScreenshotOnlyDomains`: sites indexed from a screenshot + OCR instead of reading the page. Default: `admin.example.com`, whose app list flickers at some window sizes while Edge's accessibility support is on (reading a page switches it on).
 - `SeedMaxWindows`, `SeedMaxLoadingTabs`, `SeedTabTimeoutMs`, `SeedRestoreMinimized`: tab scan speed, load limits and minimized windows.
 - `RetentionDays`, `OcrEnabled`, `CaptureDelayMs`, `ReindexAfterSeconds`, `RecaptureAfterSeconds`, `IndexingPaused`.
@@ -74,7 +75,19 @@ before upgrading or uninstalling. The app is self-contained, so no .NET install 
 - **New release:** bump `Version` in `Directory.Build.props` and rebuild; the new MSI upgrades in place.
 - **Uninstall:** use Add/Remove Programs. Your index and settings in `%LOCALAPPDATA%\WindowSearcher` are
   kept. Delete that folder to remove them.
+- Every released MSI is kept in `releases\` (not in git; they're 70 MB each).
 - The MSI isn't code-signed, so Windows SmartScreen may warn before running it.
+
+## Going back to an earlier version
+
+- **Without reinstalling:** each behavior change since 1.0.4 can be switched off in settings.
+  - `"ReadTabsWithoutPages": false` restores the 1.0.4 way of reading Edge windows.
+  - `"ScreenshotOnlyDomains": []` indexes admin portal by reading the page again.
+- **Installing an older release:** from 1.0.6 on, any MSI in `releases\` can be run directly to go
+  back to that version. To go back to 1.0.5 or earlier, uninstall first (Add/Remove Programs), because
+  those installers refuse to replace a newer version.
+- **Source:** the project is in git with a tag per release (`git tag`). For example,
+  `git checkout v1.0.5 -- .` restores that release's files, and rebuilding gives its installer.
 - The installer uses WiX 5.0.2 (MS-RL). WiX 6+ is under a maintenance-fee EULA, so don't upgrade it without checking.
 
 ## Build and test

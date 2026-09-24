@@ -28,6 +28,7 @@ internal sealed class AppCore : IDisposable
     public AppCore(bool background)
     {
         _settings = AppSettings.Load(AppPaths.Settings);
+        UiaReader.PageFreeBrowserReads = _settings.ReadTabsWithoutPages;
         using (var index = new SearchIndex(AppPaths.Database)) Docs.Load(index.GetSummaries());
 
         Tracker = new WindowTracker();
@@ -347,6 +348,7 @@ internal sealed class AppCore : IDisposable
         _settingsDebounce.Stop();
         var previousHotkey = _settings.Hotkey;
         _settings = AppSettings.Load(AppPaths.Settings);
+        UiaReader.PageFreeBrowserReads = _settings.ReadTabsWithoutPages;
         if (_settings.Hotkey != previousHotkey && !_hotkey.Register(_settings.Hotkey))
         {
             _tray.ShowBalloon("Hotkey unavailable", $"{_settings.Hotkey} is invalid or already in use. Keeping {previousHotkey}.");

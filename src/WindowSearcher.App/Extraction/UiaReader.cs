@@ -81,8 +81,19 @@ internal sealed partial class UiaReader : IDisposable
                 docs.Add(area);
                 continue;
             }
-            // MultiContentsView -> View -> Document: a few levels at most; never enter the page itself.
-            var level = new List<AutomationElement> { area };
+            // The main page lives in MultiContentsView -> View -> Document. Find that container first
+            // (pre-order, so it's reached before any page), then step down a few levels to the document.
+            var start = area.Properties.ClassName.ValueOrDefault == "MultiContentsView"
+                ? area
+                : area.FindFirstDescendant(_cf.ByClassName("MultiContentsView"));
+            if (start is null)
+            {
+                // Other layouts (e.g. app windows): take the first document under this area.
+                var doc = area.FindFirstDescendant(_cf.ByControlType(ControlType.Document));
+                if (doc is not null) docs.Add(doc);
+                continue;
+            }
+            var level = new List<AutomationElement> { start };
             for (var depth = 0; depth < 4 && level.Count > 0; depth++)
             {
                 var next = new List<AutomationElement>();
@@ -105,6 +116,13 @@ internal sealed partial class UiaReader : IDisposable
                ?? docs.FirstOrDefault();
     }
 
+    /// <summary>
+    /// true (default): read tabs and the address bar without touching web pages.
+    /// false: the 1.0.4 behavior, one search over the whole window including the page.
+    /// Set from AppSettings.ReadTabsWithoutPages.
+    /// </summary>
+    public static volatile bool PageFreeBrowserReads = true;
+
     private sealed record BrowserUi(
         List<(AutomationElement El, string Name, bool Selected)> Tabs,
         AutomationElement? Omnibox,
@@ -117,69 +135,188 @@ internal sealed partial class UiaReader : IDisposable
     private static bool IsMainPageArea(string cls) =>
         cls is "MultiContentsView" || cls.Contains("ContentsWebView", StringComparison.Ordinal);
 
-    /// <summary>
-    /// Walks the browser's own interface (raw view: Edge marks tabs as non-control elements),
-    /// collecting tabs, the address bar and the page containers, without descending into pages.
-    /// </summary>
-    private BrowserUi WalkBrowserUi(IntPtr hwnd)
+    private CacheRequest NewBrowserCache()
     {
-        var root = _automation.FromHandle(hwnd);
         var lib = _automation.PropertyLibrary;
-        var walker = _automation.TreeWalkerFactory.GetRawViewWalker();
-        var cache = new CacheRequest { TreeScope = TreeScope.Element, AutomationElementMode = AutomationElementMode.Full };
+        // Raw view: Edge marks its tabs as non-control elements.
+        var cache = new CacheRequest
+        {
+            TreeScope = TreeScope.Element,
+            AutomationElementMode = AutomationElementMode.Full,
+            TreeFilter = TrueCondition.Default,
+        };
         cache.Add(lib.Element.Name);
         cache.Add(lib.Element.ClassName);
         cache.Add(lib.Element.ControlType);
         cache.Add(lib.Element.AutomationId);
         cache.Add(lib.SelectionItem.IsSelected);
+        return cache;
+    }
 
+    /// <summary>
+    /// Finds the tabs, the address bar and the page containers of a browser window. Goes straight
+    /// to Edge/Chrome's BrowserView and searches only its toolbar and tab bar (about 9 requests,
+    /// ~40 ms), never entering a page. Other layouts fall back to a pruned walk of the whole window.
+    /// </summary>
+    private BrowserUi WalkBrowserUi(IntPtr hwnd)
+    {
+        if (!PageFreeBrowserReads) return SearchWholeWindow(hwnd);
+
+        var root = _automation.FromHandle(hwnd);
+        var lib = _automation.PropertyLibrary;
         var tabs = new List<(AutomationElement, string, bool)>();
         AutomationElement? omnibox = null;
         var content = new List<AutomationElement>();
-        using (cache.Activate())
+
+        using (NewBrowserCache().Activate())
         {
-            // Depth-first in document order, so tabs come out left to right.
-            var stack = new Stack<(AutomationElement El, int Depth)>();
-            stack.Push((root, 0));
-            var visited = 0;
-            while (stack.Count > 0 && visited++ < 2000)
+            var browserView = FindBrowserView(root);
+            if (browserView is null) return WalkPruned(root);
+
+            void AddTabs(AutomationElement container)
             {
-                var (el, depth) = stack.Pop();
-                if (depth > 0)
+                foreach (var el in container.FindAllDescendants(_cf.ByControlType(ControlType.TabItem)))
                 {
-                    var type = el.Properties.ControlType.ValueOrDefault;
                     var cls = el.Properties.ClassName.ValueOrDefault ?? string.Empty;
-                    if (type == ControlType.Document)
-                    {
-                        content.Add(el); // app/popup windows expose their page directly
+                    var id = el.Properties.AutomationId.ValueOrDefault ?? string.Empty;
+                    if (!BrowserTabClass().IsMatch(cls) || (id.Length > 0 && !id.StartsWith("view_", StringComparison.Ordinal)))
                         continue;
-                    }
-                    if (IsPageContainer(cls))
-                    {
-                        if (IsMainPageArea(cls)) content.Add(el);
-                        continue;
-                    }
-                    if (type == ControlType.TabItem)
-                    {
-                        var id = el.Properties.AutomationId.ValueOrDefault ?? string.Empty;
-                        if (BrowserTabClass().IsMatch(cls) && (id.Length == 0 || id.StartsWith("view_", StringComparison.Ordinal)))
-                        {
-                            el.FrameworkAutomationElement.TryGetPropertyValue(lib.SelectionItem.IsSelected, out bool selected);
-                            tabs.Add((el, el.Properties.Name.ValueOrDefault ?? string.Empty, selected));
-                        }
-                        continue;
-                    }
-                    if (cls == "OmniboxViewViews")
-                    {
-                        omnibox ??= el;
-                        continue;
-                    }
+                    el.FrameworkAutomationElement.TryGetPropertyValue(lib.SelectionItem.IsSelected, out bool selected);
+                    tabs.Add((el, el.Properties.Name.ValueOrDefault ?? string.Empty, selected));
                 }
-                if (depth >= 25) continue;
-                var children = new List<AutomationElement>();
-                for (var child = walker.GetFirstChild(el); child is not null; child = walker.GetNextSibling(child))
-                    children.Add(child);
-                for (var i = children.Count - 1; i >= 0; i--) stack.Push((children[i], depth + 1));
+            }
+
+            foreach (var child in browserView.FindAllChildren())
+            {
+                var cls = child.Properties.ClassName.ValueOrDefault ?? string.Empty;
+                if (cls == "TopContainerView")
+                {
+                    // Toolbar (address bar); Chrome also keeps its tab strip here.
+                    omnibox ??= child.FindFirstDescendant(_cf.ByClassName("OmniboxViewViews"));
+                    AddTabs(child);
+                }
+                else if (cls.EndsWith("TabStripRegionView", StringComparison.Ordinal))
+                {
+                    AddTabs(child); // Edge's horizontal or vertical tab bar
+                }
+                else
+                {
+                    content.Add(child); // page area, side panes: only entered by GetPageDocument
+                }
+            }
+        }
+        return new BrowserUi(tabs, omnibox, content);
+    }
+
+    /// <summary>Breadth-first down to BrowserView through the frame views above it, never into pages.</summary>
+    private static AutomationElement? FindBrowserView(AutomationElement root)
+    {
+        var level = new List<AutomationElement> { root };
+        for (var depth = 0; depth < 6 && level.Count > 0; depth++)
+        {
+            var next = new List<AutomationElement>();
+            foreach (var el in level)
+            {
+                foreach (var child in el.FindAllChildren())
+                {
+                    var cls = child.Properties.ClassName.ValueOrDefault ?? string.Empty;
+                    if (cls == "BrowserView") return child;
+                    if (child.Properties.ControlType.ValueOrDefault != ControlType.Document && !IsPageContainer(cls))
+                        next.Add(child);
+                }
+            }
+            level = next;
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Fallback for unfamiliar layouts: depth-first over the window, one request per level,
+    /// stopping at page containers and documents. Must be called with a cache request active.
+    /// </summary>
+    private BrowserUi WalkPruned(AutomationElement root)
+    {
+        var lib = _automation.PropertyLibrary;
+        var tabs = new List<(AutomationElement, string, bool)>();
+        AutomationElement? omnibox = null;
+        var content = new List<AutomationElement>();
+        var stack = new Stack<(AutomationElement El, int Depth)>();
+        stack.Push((root, 0));
+        var visited = 0;
+        while (stack.Count > 0 && visited++ < 2000)
+        {
+            var (el, depth) = stack.Pop();
+            if (depth > 0)
+            {
+                var type = el.Properties.ControlType.ValueOrDefault;
+                var cls = el.Properties.ClassName.ValueOrDefault ?? string.Empty;
+                if (type == ControlType.Document)
+                {
+                    content.Add(el); // app/popup windows expose their page directly
+                    continue;
+                }
+                if (IsPageContainer(cls))
+                {
+                    if (IsMainPageArea(cls)) content.Add(el);
+                    continue;
+                }
+                if (type == ControlType.TabItem)
+                {
+                    var id = el.Properties.AutomationId.ValueOrDefault ?? string.Empty;
+                    if (BrowserTabClass().IsMatch(cls) && (id.Length == 0 || id.StartsWith("view_", StringComparison.Ordinal)))
+                    {
+                        el.FrameworkAutomationElement.TryGetPropertyValue(lib.SelectionItem.IsSelected, out bool selected);
+                        tabs.Add((el, el.Properties.Name.ValueOrDefault ?? string.Empty, selected));
+                    }
+                    continue;
+                }
+                if (cls == "OmniboxViewViews")
+                {
+                    omnibox ??= el;
+                    continue;
+                }
+            }
+            if (depth >= 25) continue;
+            var children = el.FindAllChildren();
+            for (var i = children.Length - 1; i >= 0; i--) stack.Push((children[i], depth + 1));
+        }
+        return new BrowserUi(tabs, omnibox, content);
+    }
+
+    /// <summary>The 1.0.4 method: one search over the whole window, which also walks the page.</summary>
+    private BrowserUi SearchWholeWindow(IntPtr hwnd)
+    {
+        var root = _automation.FromHandle(hwnd);
+        var lib = _automation.PropertyLibrary;
+        var tabs = new List<(AutomationElement, string, bool)>();
+        AutomationElement? omnibox = null;
+        var content = new List<AutomationElement>();
+        using (NewBrowserCache().Activate())
+        {
+            var found = root.FindAllDescendants(
+                _cf.ByControlType(ControlType.TabItem)
+                    .Or(_cf.ByControlType(ControlType.Document))
+                    .Or(_cf.ByClassName("OmniboxViewViews")));
+            foreach (var el in found)
+            {
+                var type = el.Properties.ControlType.ValueOrDefault;
+                var cls = el.Properties.ClassName.ValueOrDefault ?? string.Empty;
+                var id = el.Properties.AutomationId.ValueOrDefault ?? string.Empty;
+                if (type == ControlType.TabItem)
+                {
+                    if (!BrowserTabClass().IsMatch(cls) || (id.Length > 0 && !id.StartsWith("view_", StringComparison.Ordinal)))
+                        continue;
+                    el.FrameworkAutomationElement.TryGetPropertyValue(lib.SelectionItem.IsSelected, out bool selected);
+                    tabs.Add((el, el.Properties.Name.ValueOrDefault ?? string.Empty, selected));
+                }
+                else if (type == ControlType.Document)
+                {
+                    content.Add(el);
+                }
+                else if (cls == "OmniboxViewViews")
+                {
+                    omnibox ??= el;
+                }
             }
         }
         return new BrowserUi(tabs, omnibox, content);
