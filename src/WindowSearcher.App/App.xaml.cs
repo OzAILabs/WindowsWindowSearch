@@ -70,30 +70,39 @@ public partial class App : Application
         {
             while (_showEvent.WaitOne() && !_exiting)
             {
-                var (grid, query) = ReadCommand();
-                Dispatcher.BeginInvoke(() => _core?.Launcher.ShowLauncher(grid, query));
+                var args = ReadCommandArgs();
+                Dispatcher.BeginInvoke(() => RunCommand(args));
             }
         }) { IsBackground = true, Name = "ShowSignal" }.Start();
 
         Log.Info($"Started (pid {Environment.ProcessId})");
     }
 
-    private static (bool Grid, string? Query) ReadCommand()
+    private static string[] ReadCommandArgs()
     {
         try
         {
-            if (!File.Exists(AppPaths.Command)) return (false, null);
+            if (!File.Exists(AppPaths.Command)) return [];
             var args = File.ReadAllLines(AppPaths.Command);
             File.Delete(AppPaths.Command);
-            var grid = args.Any(a => a.Equals("--grid", StringComparison.OrdinalIgnoreCase));
-            var q = Array.FindIndex(args, a => a.Equals("--query", StringComparison.OrdinalIgnoreCase));
-            var query = q >= 0 && q + 1 < args.Length ? string.Join(' ', args[(q + 1)..]) : null;
-            return (grid, query);
+            return args;
         }
         catch (IOException)
         {
-            return (false, null);
+            return [];
         }
+    }
+
+    /// <summary>A second launch's arguments: --settings, --about, or the launcher (--grid, --query text).</summary>
+    private void RunCommand(string[] args)
+    {
+        if (_core is null) return;
+        bool Has(string flag) => args.Any(a => a.Equals(flag, StringComparison.OrdinalIgnoreCase));
+        if (Has("--settings")) { _core.OpenSettings(); return; }
+        if (Has("--about")) { _core.OpenAbout(); return; }
+        var q = Array.FindIndex(args, a => a.Equals("--query", StringComparison.OrdinalIgnoreCase));
+        var query = q >= 0 && q + 1 < args.Length ? string.Join(' ', args[(q + 1)..]) : null;
+        _core.Launcher.ShowLauncher(Has("--grid"), query);
     }
 
     protected override void OnExit(ExitEventArgs e)

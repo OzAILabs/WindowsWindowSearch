@@ -36,4 +36,10 @@
     <PackageReference Include="FlaUI.UIA3" Version="5.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- About screen images (display-sized copies of docs\logo.png and docs\OzAILabs.png). -->
+    <Resource Include="Assets\logo.png" />
+    <Resource Include="Assets\branding.png" />
+  </ItemGroup>
+
 </Project>

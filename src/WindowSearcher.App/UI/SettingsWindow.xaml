@@ -1,0 +1,223 @@
+<Window x:Class="WindowSearcher.App.UI.SettingsWindow" x:ClassModifier="internal"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Windows Window Search settings"
+        Width="720" Height="780" MinWidth="560" MinHeight="480"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource BgBrush}"
+        Foreground="{DynamicResource TextBrush}"
+        FontFamily="Segoe UI Variable Text, Segoe UI" FontSize="13"
+        TextOptions.TextFormattingMode="Display">
+
+    <Window.Resources>
+        <!-- Label column + input column for one setting. -->
+        <Style TargetType="Grid" x:Key="Row">
+            <Setter Property="Margin" Value="0,8,0,0" />
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Margin="28,8,28,20">
+
+                <!-- General -->
+                <TextBlock Text="General" Style="{StaticResource SectionHeader}" />
+                <Grid Style="{StaticResource Row}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="230" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Search shortcut" Style="{StaticResource FieldLabel}" />
+                    <StackPanel Grid.Column="1">
+                        <TextBox x:Name="HotkeyBox" Style="{StaticResource FieldBox}" IsReadOnly="True" IsReadOnlyCaretVisible="False"
+                                 PreviewKeyDown="OnHotkeyKeyDown" Cursor="Hand" Width="220" HorizontalAlignment="Left" />
+                        <TextBlock Style="{StaticResource Hint}" Text="Click the box and press the new shortcut, e.g. Ctrl+Alt+Space." />
+                    </StackPanel>
+                </Grid>
+                <CheckBox x:Name="StartWithWindowsBox" Style="{StaticResource Option}" Content="Start with Windows" Margin="0,14,0,0" />
+                <CheckBox x:Name="PausedBox" Style="{StaticResource Option}" Content="Pause indexing" />
+                <TextBlock Style="{StaticResource Hint}" Margin="22,0,0,0"
+                           Text="While paused, the app doesn't read or capture other apps. Search still works on what's already indexed." />
+
+                <!-- Privacy -->
+                <TextBlock Text="Privacy" Style="{StaticResource SectionHeader}" />
+                <CheckBox x:Name="PrivateWindowsBox" Style="{StaticResource Option}" Content="Include InPrivate windows" Margin="0,0,0,0" />
+                <TextBlock Style="{StaticResource Hint}" Margin="22,0,0,0"
+                           Text="Useful when InPrivate is a second sign-in, but it keeps a local record of those pages." />
+                <Grid Style="{StaticResource Row}" Margin="0,14,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="230" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Keep closed tabs searchable for" Style="{StaticResource FieldLabel}" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <TextBox x:Name="RetentionBox" Style="{StaticResource FieldBox}" Width="70" />
+                        <TextBlock Text="days" Style="{StaticResource FieldLabel}" Margin="8,0,0,0" />
+                    </StackPanel>
+                </Grid>
+                <Grid Style="{StaticResource Row}" Margin="0,14,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="230" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Apps never captured or read" Style="{StaticResource FieldLabel}" VerticalAlignment="Top" Margin="0,4,0,0" />
+                    <StackPanel Grid.Column="1">
+                        <TextBox x:Name="ExcludedAppsBox" Style="{StaticResource MultiLineBox}" />
+                        <TextBlock Style="{StaticResource Hint}" Text="One program name per line, without .exe (e.g. KeePass). Still listed by title." />
+                    </StackPanel>
+                </Grid>
+                <Grid Style="{StaticResource Row}" Margin="0,14,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="230" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Sites never captured or indexed" Style="{StaticResource FieldLabel}" VerticalAlignment="Top" Margin="0,4,0,0" />
+                    <StackPanel Grid.Column="1">
+                        <TextBox x:Name="ExcludedSitesBox" Style="{StaticResource MultiLineBox}" />
+                        <TextBlock Style="{StaticResource Hint}" Text="One domain per line (e.g. bank.com); subdomains are included." />
+                    </StackPanel>
+                </Grid>
+
+                <!-- Indexing -->
+                <TextBlock Text="Indexing" Style="{StaticResource SectionHeader}" />
+                <CheckBox x:Name="OcrBox" Style="{StaticResource Option}" Content="Use OCR when an app exposes little text" Margin="0,0,0,0" />
+                <CheckBox x:Name="ReadTabsWithoutPagesBox" Style="{StaticResource Option}" Content="Read Edge tabs without touching pages (recommended)" />
+                <TextBlock Style="{StaticResource Hint}" Margin="22,0,0,0"
+                           Text="Pages are only read when their text is due. Turn off to use the method from version 1.0.4." />
+                <Grid Style="{StaticResource Row}" Margin="0,14,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="230" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Sites indexed by screenshot only" Style="{StaticResource FieldLabel}" VerticalAlignment="Top" Margin="0,4,0,0" />
+                    <StackPanel Grid.Column="1">
+                        <TextBox x:Name="ScreenshotOnlySitesBox" Style="{StaticResource MultiLineBox}" />
+                        <TextBlock Style="{StaticResource Hint}"
+                                   Text="These pages are indexed from their screenshot with OCR instead of being read, for sites that misbehave when read. Only visible text becomes searchable." />
+                    </StackPanel>
+                </Grid>
+                <Grid Style="{StaticResource Row}" Margin="0,14,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="230" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Apps read by screenshot only" Style="{StaticResource FieldLabel}" VerticalAlignment="Top" Margin="0,4,0,0" />
+                    <StackPanel Grid.Column="1">
+                        <TextBox x:Name="OcrOnlyAppsBox" Style="{StaticResource MultiLineBox}" />
+                        <TextBlock Style="{StaticResource Hint}" Text="Filled in automatically for apps that are slow to read (e.g. mmc). Remove a name to try reading it again." />
+                    </StackPanel>
+                </Grid>
+
+                <!-- Tab scan -->
+                <TextBlock Text="Tab scan" Style="{StaticResource SectionHeader}" />
+                <Grid Style="{StaticResource Row}" Margin="0,0,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="230" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Edge windows at once" Style="{StaticResource FieldLabel}" />
+                    <TextBox x:Name="SeedWindowsBox" Grid.Column="1" Style="{StaticResource FieldBox}" Width="70" HorizontalAlignment="Left" />
+                </Grid>
+                <Grid Style="{StaticResource Row}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="230" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Tabs loading at once" Style="{StaticResource FieldLabel}" />
+                    <TextBox x:Name="SeedLoadingBox" Grid.Column="1" Style="{StaticResource FieldBox}" Width="70" HorizontalAlignment="Left" />
+                </Grid>
+                <Grid Style="{StaticResource Row}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="230" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Give up on a tab after" Style="{StaticResource FieldLabel}" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <TextBox x:Name="SeedTimeoutBox" Style="{StaticResource FieldBox}" Width="70" />
+                        <TextBlock Text="seconds" Style="{StaticResource FieldLabel}" Margin="8,0,0,0" />
+                    </StackPanel>
+                </Grid>
+                <CheckBox x:Name="SeedRestoreMinimizedBox" Style="{StaticResource Option}" Margin="0,12,0,0"
+                          Content="Briefly restore minimized windows so their tabs get a preview" />
+
+                <!-- Advanced -->
+                <Expander Margin="0,22,0,0" Foreground="{DynamicResource TextBrush}">
+                    <Expander.Header>
+                        <TextBlock Text="Advanced" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}" />
+                    </Expander.Header>
+                    <StackPanel Margin="0,4,0,0">
+                        <Grid Style="{StaticResource Row}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="230" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Wait after switching windows" Style="{StaticResource FieldLabel}" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <TextBox x:Name="CaptureDelayBox" Style="{StaticResource FieldBox}" Width="70" />
+                                <TextBlock Text="ms before reading (skips quick Alt-Tabbing)" Style="{StaticResource FieldLabel}" Margin="8,0,0,0" />
+                            </StackPanel>
+                        </Grid>
+                        <Grid Style="{StaticResource Row}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="230" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Re-read an unchanged page every" Style="{StaticResource FieldLabel}" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <TextBox x:Name="ReindexBox" Style="{StaticResource FieldBox}" Width="70" />
+                                <TextBlock Text="seconds" Style="{StaticResource FieldLabel}" Margin="8,0,0,0" />
+                            </StackPanel>
+                        </Grid>
+                        <Grid Style="{StaticResource Row}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="230" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Refresh an unchanged preview every" Style="{StaticResource FieldLabel}" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <TextBox x:Name="RecaptureBox" Style="{StaticResource FieldBox}" Width="70" />
+                                <TextBlock Text="seconds" Style="{StaticResource FieldLabel}" Margin="8,0,0,0" />
+                            </StackPanel>
+                        </Grid>
+                        <Grid Style="{StaticResource Row}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="230" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Most text kept per window or tab" Style="{StaticResource FieldLabel}" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <TextBox x:Name="MaxTextBox" Style="{StaticResource FieldBox}" Width="90" />
+                                <TextBlock Text="characters" Style="{StaticResource FieldLabel}" Margin="8,0,0,0" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Expander>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Footer -->
+        <Border Grid.Row="1" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource BorderBrush}" Padding="28,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Button Content="Reset to defaults" Style="{StaticResource DialogButton}" Click="OnResetClick" />
+                <Button Grid.Column="1" Content="Open settings file" Style="{StaticResource DialogButton}" Margin="8,0,0,0" Click="OnOpenFileClick"
+                        ToolTip="Edit the JSON file directly (advanced)" />
+                <TextBlock x:Name="ErrorText" Grid.Column="2" Foreground="#E8615B" TextWrapping="Wrap" VerticalAlignment="Center" Margin="12,0" />
+                <Button Grid.Column="3" Content="Cancel" Style="{StaticResource DialogButton}" IsCancel="True" Click="OnCancelClick" />
+                <Button Grid.Column="4" Content="Save" Style="{StaticResource AccentButton}" IsDefault="True" Margin="8,0,0,0" Click="OnSaveClick" />
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

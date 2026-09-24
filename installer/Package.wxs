@@ -4,7 +4,7 @@
 
   <!-- UpgradeCode must never change: it is how new versions find and replace old ones. -->
   <Package Name="Windows Window Search"
-           Manufacturer="Windows Window Search"
+           Manufacturer="OzAILabs"
            Version="$(var.ProductVersion)"
            UpgradeCode="BE82458D-0E6F-4054-B7C7-7E60CFEB4237"
            Scope="perMachine"

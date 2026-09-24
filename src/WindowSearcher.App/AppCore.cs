@@ -124,6 +124,32 @@ internal sealed class AppCore : IDisposable
             Schedule(w, JobKind.Sweep, 300 + i++ * 200);
     }
 
+    private SettingsWindow? _settingsWindow;
+    private AboutWindow? _aboutWindow;
+
+    /// <summary>Opens the settings window, or brings it forward if it's already open.</summary>
+    public void OpenSettings()
+    {
+        if (_settingsWindow is null)
+        {
+            _settingsWindow = new SettingsWindow(this);
+            _settingsWindow.Closed += (_, _) => _settingsWindow = null;
+            _settingsWindow.Show();
+        }
+        _settingsWindow.Activate();
+    }
+
+    public void OpenAbout()
+    {
+        if (_aboutWindow is null)
+        {
+            _aboutWindow = new AboutWindow();
+            _aboutWindow.Closed += (_, _) => _aboutWindow = null;
+            _aboutWindow.Show();
+        }
+        _aboutWindow.Activate();
+    }
+
     public void TogglePause()
     {
         _settings.IndexingPaused = !_settings.IndexingPaused;
@@ -343,7 +369,7 @@ internal sealed class AppCore : IDisposable
         });
     }
 
-    private void ReloadSettings()
+    public void ReloadSettings()
     {
         _settingsDebounce.Stop();
         var previousHotkey = _settings.Hotkey;

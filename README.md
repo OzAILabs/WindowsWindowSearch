@@ -11,9 +11,9 @@ preview of each one, and switches straight to it. No browser extension is needed
 - **↑/↓** select, **Enter** switch to it (restores the window and selects the tab), **Tab** toggles the
   thumbnail grid, **Esc** closes.
 - Clicking the tray icon toggles the launcher. The tray menu has pause (the app then doesn't touch other
-  apps at all), start with Windows, settings, log and clear index.
-- Launching the exe again opens the launcher of the running instance. `--grid` opens the grid view and
-  `--query <text>` opens it pre-filled.
+  apps at all), start with Windows, **Settings…** (a settings window), **About**, log and clear index.
+- Launching the exe again opens the launcher of the running instance. `--grid` opens the grid view,
+  `--query <text>` opens it pre-filled, `--settings` opens settings and `--about` the About window.
 
 ## How it works
 
@@ -41,7 +41,7 @@ and restores your tabs. Sleeping tabs it wakes use more memory until Edge puts t
 
 ## Settings
 
-`%LOCALAPPDATA%\WindowSearcher\settings.json` (tray → Settings). Changes apply as soon as you save the file.
+Tray → **Settings…** opens a settings window. Everything is stored in `%LOCALAPPDATA%\WindowSearcher\settings.json`, which can also be edited directly (**Open settings file** in the window); changes apply as soon as the file is saved.
 
 - `Hotkey`: for example `"Ctrl+Alt+Space"` or `"Win+Shift+F"`.
 - `ExcludedProcesses`: listed by title only, never captured or read. Password managers are excluded by default.

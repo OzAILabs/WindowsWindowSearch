@@ -47,11 +47,12 @@ internal sealed class TrayIcon : IDisposable
         menu.Items.Add(_private);
         menu.Items.Add(_autostart);
         menu.Items.Add(new WinForms.ToolStripSeparator());
-        menu.Items.Add(new WinForms.ToolStripMenuItem("Settings (hotkey, exclusions)…", null, (_, _) => OpenFile("notepad.exe", AppPaths.Settings)));
+        menu.Items.Add(new WinForms.ToolStripMenuItem("Settings…", null, (_, _) => _core.OpenSettings()));
         menu.Items.Add(new WinForms.ToolStripMenuItem("Open log", null, (_, _) => OpenFile("notepad.exe", AppPaths.Log)));
         menu.Items.Add(new WinForms.ToolStripMenuItem("Open data folder", null, (_, _) => OpenFile("explorer.exe", AppPaths.Root)));
         menu.Items.Add(new WinForms.ToolStripMenuItem("Clear index and previews…", null, (_, _) => ConfirmClear()));
         menu.Items.Add(new WinForms.ToolStripSeparator());
+        menu.Items.Add(new WinForms.ToolStripMenuItem("About Windows Window Search", null, (_, _) => _core.OpenAbout()));
         menu.Items.Add(new WinForms.ToolStripMenuItem("Exit", null, (_, _) => System.Windows.Application.Current.Shutdown()));
         menu.Opening += (_, _) => UpdateState();
 
