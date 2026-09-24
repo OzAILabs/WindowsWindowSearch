@@ -52,6 +52,7 @@ internal sealed class TrayIcon : IDisposable
         menu.Items.Add(new WinForms.ToolStripMenuItem("Open data folder", null, (_, _) => OpenFile("explorer.exe", AppPaths.Root)));
         menu.Items.Add(new WinForms.ToolStripMenuItem("Clear index and previews…", null, (_, _) => ConfirmClear()));
         menu.Items.Add(new WinForms.ToolStripSeparator());
+        menu.Items.Add(new WinForms.ToolStripMenuItem("Help", null, (_, _) => _core.OpenHelp()));
         menu.Items.Add(new WinForms.ToolStripMenuItem("About Windows Window Search", null, (_, _) => _core.OpenAbout()));
         menu.Items.Add(new WinForms.ToolStripMenuItem("Exit", null, (_, _) => System.Windows.Application.Current.Shutdown()));
         menu.Opening += (_, _) => UpdateState();

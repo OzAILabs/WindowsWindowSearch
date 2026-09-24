@@ -192,6 +192,11 @@ internal partial class LauncherWindow : Window
                 HideLauncher();
                 e.Handled = true;
                 break;
+            case Key.F1:
+                HideLauncher();
+                _core.OpenHelp();
+                e.Handled = true;
+                break;
             case Key.Enter:
                 _ = ActivateAsync(SelectedIndex >= 0 && SelectedIndex < _results.Count ? _results[SelectedIndex] : null);
                 e.Handled = true;

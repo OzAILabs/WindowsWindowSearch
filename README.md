@@ -9,11 +9,15 @@ preview of each one, and switches straight to it. No browser extension is needed
 - **Ctrl+Alt+Space** opens the launcher. With no text, it lists windows and tabs, most recent first.
   Type to search, for example `token cost`.
 - **↑/↓** select, **Enter** switch to it (restores the window and selects the tab), **Tab** toggles the
-  thumbnail grid, **Esc** closes.
+  thumbnail grid, **F1** opens the user guide, **Esc** closes.
 - Clicking the tray icon toggles the launcher. The tray menu has pause (the app then doesn't touch other
-  apps at all), start with Windows, **Settings…** (a settings window), **About**, log and clear index.
+  apps at all), start with Windows, **Settings…** (a settings window), **Help** (the user guide), **About**, log and clear index.
 - Launching the exe again opens the launcher of the running instance. `--grid` opens the grid view,
-  `--query <text>` opens it pre-filled, `--settings` opens settings and `--about` the About window.
+  `--query <text>` opens it pre-filled, `--settings` opens settings, `--about` the About window and `--help` the user guide.
+
+The user guide is [src/WindowSearcher.App/Help/index.html](src/WindowSearcher.App/Help/index.html). It's installed next to the exe
+(`Help\index.html`, with the logo and branding images) and opens in the default browser from the tray menu, F1 in the
+launcher, or the **Windows Window Search Help** Start menu shortcut. Update it when behavior or settings change.
 
 ## How it works
 

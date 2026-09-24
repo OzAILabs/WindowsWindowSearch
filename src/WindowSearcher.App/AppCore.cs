@@ -150,6 +150,22 @@ internal sealed class AppCore : IDisposable
         _aboutWindow.Activate();
     }
 
+    /// <summary>Opens the user guide (Help\index.html next to the exe) in the default browser.</summary>
+    public void OpenHelp()
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, "Help", "index.html");
+        try
+        {
+            if (!File.Exists(path)) throw new FileNotFoundException("The user guide is missing", path);
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(path) { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"Could not open {path}", ex);
+            _tray.ShowBalloon("Help unavailable", "The user guide could not be opened. See the log for details.");
+        }
+    }
+
     public void TogglePause()
     {
         _settings.IndexingPaused = !_settings.IndexingPaused;

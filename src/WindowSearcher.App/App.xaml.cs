@@ -93,13 +93,14 @@ public partial class App : Application
         }
     }
 
-    /// <summary>A second launch's arguments: --settings, --about, or the launcher (--grid, --query text).</summary>
+    /// <summary>A second launch's arguments: --settings, --about, --help, or the launcher (--grid, --query text).</summary>
     private void RunCommand(string[] args)
     {
         if (_core is null) return;
         bool Has(string flag) => args.Any(a => a.Equals(flag, StringComparison.OrdinalIgnoreCase));
         if (Has("--settings")) { _core.OpenSettings(); return; }
         if (Has("--about")) { _core.OpenAbout(); return; }
+        if (Has("--help")) { _core.OpenHelp(); return; }
         var q = Array.FindIndex(args, a => a.Equals("--query", StringComparison.OrdinalIgnoreCase));
         var query = q >= 0 && q + 1 < args.Length ? string.Join(' ', args[(q + 1)..]) : null;
         _core.Launcher.ShowLauncher(Has("--grid"), query);

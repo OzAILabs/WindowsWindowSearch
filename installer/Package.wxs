@@ -41,6 +41,14 @@
         <RegistryValue Root="HKLM" Key="Software\Windows Window Search" Name="StartMenuShortcut"
                        Type="integer" Value="1" KeyPath="yes" />
       </Component>
+      <Component Id="HelpShortcut" Guid="3F7A2C51-9D4E-4B8A-A6C2-5E1D0B7F9C34">
+        <Shortcut Id="HelpShortcut"
+                  Name="Windows Window Search Help"
+                  Description="User guide for Windows Window Search"
+                  Target="[INSTALLFOLDER]Help\index.html" />
+        <RegistryValue Root="HKLM" Key="Software\Windows Window Search" Name="HelpShortcut"
+                       Type="integer" Value="1" KeyPath="yes" />
+      </Component>
     </StandardDirectory>
 
     <!--
@@ -67,6 +75,7 @@
     <Feature Id="Main" Title="Windows Window Search" Level="1">
       <ComponentGroupRef Id="AppFiles" />
       <ComponentRef Id="StartMenuShortcut" />
+      <ComponentRef Id="HelpShortcut" />
     </Feature>
 
     <!-- "Launch Windows Window Search" checkbox on the last page. Runs in the (non-elevated) UI process,
