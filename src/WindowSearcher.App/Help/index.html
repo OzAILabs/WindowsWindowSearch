@@ -496,7 +496,7 @@
         <tr><th>Setting</th><th>Description</th><th>Default</th></tr>
         <tr><td>Use OCR when an app exposes little text</td><td>Read text from the screenshot when an app doesn't provide it.</td><td>On</td></tr>
         <tr><td>Read Edge tabs without touching pages</td><td>Only reach into a page when its text is due. Recommended.</td><td>On</td></tr>
-        <tr><td>Sites indexed by screenshot only</td><td>Sites that misbehave when read are indexed from their screenshot instead. Only visible text becomes searchable.</td><td><code>admin.example.com</code></td></tr>
+        <tr><td>Sites indexed by screenshot only</td><td>Sites that misbehave when read are indexed from their screenshot instead. Only visible text becomes searchable.</td><td>Empty</td></tr>
         <tr><td>Apps read by screenshot only</td><td>Filled in automatically for apps that respond slowly. Remove a name to try reading it normally again.</td><td>Empty</td></tr>
       </table></div>
 
@@ -561,7 +561,7 @@
       </details>
       <details>
         <summary>A web page flickers while the app is running</summary>
-        <p>Reading a page switches on Edge's accessibility support, and a few sites redraw oddly while it's on. Add the site to <b>Sites indexed by screenshot only</b> in Settings. <code>admin.example.com</code> is on that list by default.</p>
+        <p>Reading a page switches on Edge's accessibility support, and a few sites redraw oddly while it's on. If it bothers you, add the site to <b>Sites indexed by screenshot only</b> in Settings; the app then indexes it from its screenshot, so only visible text becomes searchable.</p>
       </details>
       <details>
         <summary>An app feels slow while the app is running</summary>

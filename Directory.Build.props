@@ -1,7 +1,7 @@
 <Project>
   <!-- Shared by the app and the installer. Bump Version for each release: the MSI upgrades in place. -->
   <PropertyGroup>
-    <Version>1.0.12</Version>
+    <Version>1.0.13</Version>
     <Product>Windows Window Search</Product>
     <Company>OzAILabs</Company>
     <Copyright>Copyright © 2026 OzAILabs</Copyright>

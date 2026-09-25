@@ -56,7 +56,8 @@ Tray → **Settings…** opens a settings window. Everything is stored in `%LOCA
 - `OcrOnlyProcesses`: apps read only through screenshots and OCR (filled in automatically for slow apps).
 - `IndexPrivateWindows`: also capture and index InPrivate windows (tray → **Include InPrivate windows**).
 - `ReadTabsWithoutPages`: read Edge's tabs and address bar without touching pages (default `true`; `false` = the 1.0.4 method).
-- `ScreenshotOnlyDomains`: sites indexed from a screenshot + OCR instead of reading the page. Default: `admin.example.com`, whose app list flickers at some window sizes while Edge's accessibility support is on (reading a page switches it on).
+- `ScreenshotOnlyDomains`: sites indexed from a screenshot + OCR instead of reading the page, for sites that react badly to Edge's accessibility support (reading a page switches it on). Empty by default.
+- `SettingsVersion`: settings format; older files are updated once when loaded.
 - `SeedMaxWindows`, `SeedMaxLoadingTabs`, `SeedTabTimeoutMs`, `SeedRestoreMinimized`: tab scan speed, load limits and minimized windows.
 - `RetentionDays`, `OcrEnabled`, `CaptureDelayMs`, `ReindexAfterSeconds`, `RecaptureAfterSeconds`, `IndexingPaused`.
 
@@ -90,7 +91,6 @@ before upgrading or uninstalling. The app is self-contained, so no .NET install 
 
 - **Without reinstalling:** each behavior change since 1.0.4 can be switched off in settings.
   - `"ReadTabsWithoutPages": false` restores the 1.0.4 way of reading Edge windows.
-  - `"ScreenshotOnlyDomains": []` indexes admin portal by reading the page again.
 - **Installing an older release:** from 1.0.6 on, any MSI in `releases\` can be run directly to go
   back to that version. To go back to 1.0.5 or earlier, uninstall first (Add/Remove Programs), because
   those installers refuse to replace a newer version.

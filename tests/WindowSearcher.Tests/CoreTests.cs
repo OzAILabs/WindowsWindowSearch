@@ -54,8 +54,8 @@ public class AppSettingsTests
     [InlineData("https://notadmin.example.com/", false)]
     [InlineData("https://portal.azure.com/", false)]
     [InlineData(null, false)]
-    public void admin portal_is_screenshot_only_by_default(string? url, bool expected) =>
-        Assert.Equal(expected, new AppSettings().IsScreenshotOnly(url));
+    public void Screenshot_only_domains_include_subdomains(string? url, bool expected) =>
+        Assert.Equal(expected, new AppSettings { ScreenshotOnlyDomains = ["admin.example.com"] }.IsScreenshotOnly(url));
 
     [Fact]
     public void Settings_files_without_new_options_get_the_defaults()
@@ -67,7 +67,7 @@ public class AppSettingsTests
             var s = AppSettings.Load(path);
             Assert.Equal("Ctrl+Alt+Q", s.Hotkey);
             Assert.True(s.ReadTabsWithoutPages);
-            Assert.Contains("admin.example.com", s.ScreenshotOnlyDomains);
+            Assert.Empty(s.ScreenshotOnlyDomains);
         }
         finally
         {

@@ -5,6 +5,12 @@ namespace WindowSearcher.Core;
 
 public sealed class AppSettings
 {
+    /// <summary>Settings format of this release. Older files are brought up to date once when loaded.</summary>
+    public const int CurrentVersion = 2;
+
+    /// <summary>Settings format the file was written with (missing in files from 1.0.12 and earlier).</summary>
+    public int SettingsVersion { get; set; } = CurrentVersion;
+
     /// <summary>Global hotkey, e.g. "Ctrl+Alt+Space" or "Win+Shift+F".</summary>
     public string Hotkey { get; set; } = "Ctrl+Alt+Space";
 
@@ -24,11 +30,12 @@ public sealed class AppSettings
     public bool IndexPrivateWindows { get; set; }
 
     /// <summary>
-    /// Domains indexed from a screenshot + OCR instead of reading the page (subdomains included).
-    /// Reading a page switches on Edge's accessibility support for it, and some pages react badly
-    /// (admin portals's app list flickers at certain window sizes).
+    /// Domains indexed from a screenshot + OCR instead of reading the page (subdomains included), for
+    /// sites that react badly when read: reading a page switches on Edge's accessibility support for it.
+    /// Empty by default. Up to 1.0.12 it held admin.example.com, whose app list sometimes flickers,
+    /// but that flicker also happens without this app, and reading the page indexes all of it.
     /// </summary>
-    public List<string> ScreenshotOnlyDomains { get; set; } = ["admin.example.com"];
+    public List<string> ScreenshotOnlyDomains { get; set; } = [];
 
     /// <summary>
     /// true (default, since 1.0.5): read Edge's tabs and address bar without touching web pages; a page
@@ -87,7 +94,12 @@ public sealed class AppSettings
         try
         {
             if (File.Exists(path))
-                return JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(path), JsonOptions) ?? new AppSettings();
+            {
+                var json = File.ReadAllText(path);
+                var settings = JsonSerializer.Deserialize<AppSettings>(json, JsonOptions) ?? new AppSettings();
+                if (settings.Migrate(FileVersion(json))) settings.TrySave(path);
+                return settings;
+            }
         }
         catch (JsonException)
         {
@@ -103,6 +115,46 @@ public sealed class AppSettings
     {
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         File.WriteAllText(path, JsonSerializer.Serialize(this, JsonOptions));
+    }
+
+    private void TrySave(string path)
+    {
+        try
+        {
+            Save(path);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            // The update is applied in memory anyway and saved with the next change.
+        }
+    }
+
+    /// <summary>The file's SettingsVersion; 1 when it has none (written by 1.0.12 or earlier).</summary>
+    private static int FileVersion(string json)
+    {
+        using var doc = JsonDocument.Parse(json, new JsonDocumentOptions
+        {
+            CommentHandling = JsonCommentHandling.Skip,
+            AllowTrailingCommas = true,
+        });
+        return doc.RootElement.ValueKind == JsonValueKind.Object &&
+               doc.RootElement.TryGetProperty(nameof(SettingsVersion), out var v) &&
+               v.TryGetInt32(out var version)
+            ? version
+            : 1;
+    }
+
+    /// <summary>Updates settings written by an older release. Returns true if the file should be rewritten.</summary>
+    private bool Migrate(int fromVersion)
+    {
+        if (fromVersion >= CurrentVersion) return false;
+        // 2 (1.0.13): admin portal pages are read instead of OCR'd. Only a list that still holds exactly the old
+        // default is cleared; one the user edited is left as it is.
+        if (fromVersion < 2 && ScreenshotOnlyDomains.Count == 1 &&
+            string.Equals(ScreenshotOnlyDomains[0].Trim(), "admin.example.com", StringComparison.OrdinalIgnoreCase))
+            ScreenshotOnlyDomains = [];
+        SettingsVersion = CurrentVersion;
+        return true;
     }
 
     public bool IsProcessExcluded(string processName) =>
