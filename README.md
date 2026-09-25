@@ -27,7 +27,7 @@ launcher, or the **Windows Window Search Help** Start menu shortcut. Update it w
 | Piece | What it does |
 |---|---|
 | `Tracking/WindowTracker` | Keeps the Alt-Tab window list current. Window events for focus, minimize and title change; a cheap `EnumWindows` pass every 3 s catches windows opening and closing. |
-| `Extraction/ExtractionService` | A single background thread. Waits ~700 ms after you focus a window or switch tabs, then reads its text and saves a screenshot. A one-time pass at startup covers windows that were already open. |
+| `Extraction/ExtractionService` | A single background thread. Waits ~700 ms after you focus a window or switch tabs, then reads its text and saves a screenshot. A one-time pass at startup covers windows that were already open: Edge tab lists first (a few seconds), then each window in full. The launcher shows its progress (`Reading open windows N of M…`), refreshes itself meanwhile, and holds back the tab-scan link until it's done. |
 | `Extraction/UiaReader` | UI Automation reads the Edge/Chrome tab strip (`EdgeTab`) and address bar (`OmniboxViewViews`) by walking only the browser's own interface; it reaches into the active page (`RootWebArea`) only when that page's text is due, because that switches on Edge's accessibility support for the page. For other apps it reads documents, edit fields and labels. |
 | `Extraction/OcrService` | Built-in Windows OCR on the screenshot when an app exposes little text. Apps with slow UI Automation are switched to OCR only and remembered in settings. |
 | `Core/SearchIndex` | SQLite FTS5 (word stems plus prefixes) with highlighted snippets. |

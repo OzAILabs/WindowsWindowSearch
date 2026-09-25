@@ -308,7 +308,7 @@
         <li><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/></svg></span><div><b>Stays on your PC</b><span>Nothing is uploaded. The index lives in your own user profile.</span></div></li>
       </ul>
 
-      <div class="tip"><strong>First run</strong>The app learns as you work. A window becomes searchable by its text the first time you look at it after the app starts. To catch up on Edge tabs you haven't opened yet, use <a href="#tabs">Scan Edge tabs</a>.</div>
+      <div class="tip"><strong>First run</strong>When the app starts, it reads the windows that are already open in the background. That takes up to half a minute, and the status line shows <em>Reading open windows 12 of 34…</em> until it's done; the search window updates itself meanwhile. Edge tabs are listed within a few seconds. The app learns as you work. A window becomes searchable by its text the first time you look at it after the app starts. To catch up on Edge tabs you haven't opened yet, use <a href="#tabs">Scan Edge tabs</a>.</div>
     </section>
 
     <section id="launcher">
@@ -542,6 +542,10 @@
       <details>
         <summary>The search window is too big or on the wrong screen</summary>
         <p>Drag its edges to resize it, and drag the shaded title bar at the top to move it. It remembers the new size and place. The first time it opens, it's sized to fit the screen, and it's never larger than the screen it opens on.</p>
+      </details>
+      <details>
+        <summary>Right after starting, tabs or the scan link are missing</summary>
+        <p>The app is still reading the windows that were open when it started. The status line says <em>Reading open windows…</em> with a count, and the list updates itself as it goes. The scan link appears once that's finished, usually within half a minute.</p>
       </details>
       <details>
         <summary>A tab I know about only matches by its title</summary>

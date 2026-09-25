@@ -328,13 +328,76 @@ internal sealed class AppCore : IDisposable
         s.Save(AppPaths.Settings);
     }
 
-    /// <summary>One-time pass at startup so windows opened before the app have text and (if visible) a preview.</summary>
+    private static readonly TimeSpan StartupPassLimit = TimeSpan.FromMinutes(3);
+    private StartupProgress? _startup;
+    private DateTime _startupBegan;
+
+    /// <summary>Raised on the UI thread as the startup pass progresses and once when it finishes.</summary>
+    public event Action? StartupProgressChanged;
+
+    /// <summary>Progress of the startup pass over already-open windows, or null once it's finished.</summary>
+    public (int Done, int Total)? StartupStatus
+    {
+        get
+        {
+            if (_startup is not { IsFinished: false } s) return null;
+            if (DateTime.UtcNow - _startupBegan > StartupPassLimit)
+            {
+                Log.Info($"Startup pass still going after {StartupPassLimit.TotalMinutes:F0} minutes ({s.Done} of {s.Total}); no longer showing its progress");
+                s.Abandon();
+                return null;
+            }
+            return (s.Done, s.Total);
+        }
+    }
+
+    /// <summary>
+    /// One-time pass at startup so windows opened before the app have text and (if visible) a preview.
+    /// Browser tab lists come first: they take well under a second per window and make every tab (and the
+    /// tab-scan link) show up in the search window within seconds. Each browser window's full read follows
+    /// its tab list (OnJobDone); other windows are read one by one in the meantime.
+    /// </summary>
     private void StartupSweep()
     {
         if (_settings.IndexingPaused) return;
+        var windows = Tracker.Windows.OrderBy(w => w.ZOrder).ToList();
+        if (windows.Count == 0) return;
+        _startup = new StartupProgress(
+            windows.Select(w => w.Hwnd.ToInt64()),
+            windows.Where(w => w.IsBrowser).Select(w => w.Hwnd.ToInt64()));
+        _startupBegan = DateTime.UtcNow;
+        Extraction.JobDone += OnJobDone;
+
         var i = 0;
-        foreach (var w in Tracker.Windows.OrderBy(w => w.ZOrder))
-            Schedule(w, JobKind.Sweep, 1500 + i++ * 200);
+        foreach (var w in windows.Where(w => w.IsBrowser))
+            Schedule(w, JobKind.TabsOnly, 300 + i++ * 50);
+        var j = 0;
+        foreach (var w in windows.Where(w => !w.IsBrowser))
+            Schedule(w, JobKind.Sweep, 1500 + j++ * 200);
+    }
+
+    private void OnJobDone(IntPtr hwnd, JobKind kind)
+    {
+        if (_startup is not { } s || _startupEnded) return;
+        if (s.JobDone(hwnd.ToInt64(), kind == JobKind.TabsOnly))
+        {
+            if (Tracker.TryGet(hwnd, out var w)) Schedule(w, JobKind.Sweep, 200);
+            else s.Forget(hwnd.ToInt64());
+        }
+        AfterStartupProgress();
+    }
+
+    private bool _startupEnded;
+
+    private void AfterStartupProgress()
+    {
+        if (_startup is { IsFinished: true } s && !_startupEnded)
+        {
+            _startupEnded = true;
+            Extraction.JobDone -= OnJobDone;
+            Log.Info($"Startup pass done: {s.Total} windows in {(DateTime.UtcNow - _startupBegan).TotalSeconds:F1}s");
+        }
+        StartupProgressChanged?.Invoke();
     }
 
     private void OnWindowsClosed(IReadOnlyList<TrackedWindow> closed)
@@ -344,11 +407,13 @@ internal sealed class AppCore : IDisposable
         var keys = new List<string>();
         foreach (var w in closed)
         {
+            _startup?.Forget(w.Hwnd.ToInt64());
             keys.Add(w.WindowDocKey);
             var tabPrefix = $"tab:{w.Hwnd}:";
             keys.AddRange(Docs.All.Where(d => d.Key.StartsWith(tabPrefix, StringComparison.Ordinal)).Select(d => d.Key));
         }
         DeleteDocs(keys);
+        if (_startup is not null && !_startupEnded && closed.Count > 0) AfterStartupProgress();
     }
 
     private void RemoveDocsOfClosedWindows()

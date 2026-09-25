@@ -22,6 +22,7 @@ internal partial class LauncherWindow : Window
 
     private readonly AppCore _core;
     private readonly DispatcherTimer _searchDebounce;
+    private readonly DispatcherTimer _liveRefresh;
     private List<ResultItem> _results = [];
     private bool _gridMode;
     private bool _activating;
@@ -37,6 +38,10 @@ internal partial class LauncherWindow : Window
             RunSearch();
         }, Dispatcher);
         _searchDebounce.Stop(); // this constructor starts the timer
+        _liveRefresh = new DispatcherTimer(TimeSpan.FromMilliseconds(700), DispatcherPriority.Background,
+            (_, _) => RefreshKeepingSelection(), Dispatcher);
+        _liveRefresh.Stop();
+        _core.StartupProgressChanged += OnStartupProgress;
 
         PreviewKeyDown += OnPreviewKeyDown;
         Deactivated += (_, _) =>
@@ -166,23 +171,56 @@ internal partial class LauncherWindow : Window
         _searchDebounce.Start();
     }
 
-    private void RunSearch()
+    /// <param name="keep">Re-select this item (or another row of the same window) instead of the first result.</param>
+    private void RunSearch(ResultItem? keep = null)
     {
         var sw = Stopwatch.StartNew();
         var query = SearchBox.Text.Trim();
         _results = query.Length == 0 ? _core.Search.Recent() : _core.Search.Search(query);
         ResultsList.ItemsSource = _results;
         GridList.ItemsSource = _gridMode ? _results : null;
-        if (_results.Count > 0) Select(0);
+        if (_results.Count > 0) Select(Math.Max(0, IndexOfSameTarget(keep)));
         else ShowPreview(null);
 
         var windows = _core.Tracker.Windows.Count;
         var tabs = _core.Tracker.Windows.Sum(w => w.Tabs.Count);
         var paused = _core.Settings.IndexingPaused ? "   ·   indexing paused" : string.Empty;
-        StatusText.Text = query.Length == 0
+        // Right after the app starts, the counts are still growing; say so rather than look finished.
+        var startup = _core.StartupStatus;
+        var reading = startup is { } p ? $"Reading open windows {p.Done} of {p.Total}…   ·   " : string.Empty;
+        StatusText.Text = reading + (query.Length == 0
             ? $"{windows} windows  ·  {tabs} tabs  ·  {_core.Search.IndexedCount()} indexed{paused}"
-            : $"{_results.Count} results in {sw.ElapsedMilliseconds} ms{paused}";
-        UpdateSeedButton(query.Length == 0);
+            : $"{_results.Count} results in {sw.ElapsedMilliseconds} ms{paused}");
+        // The tab scan waits for the startup pass, which is still reading those windows.
+        UpdateSeedButton(query.Length == 0 && startup is null);
+    }
+
+    private int IndexOfSameTarget(ResultItem? keep)
+    {
+        if (keep is null) return -1;
+        var exact = _results.FindIndex(r => r.Kind == keep.Kind && r.Hwnd == keep.Hwnd && r.Title == keep.Title);
+        if (exact >= 0) return exact;
+        // A window row that became tab rows once its tab list was read: stay on its active tab.
+        var sameWindow = _results.FindIndex(r => r.Hwnd == keep.Hwnd && r.Hwnd != IntPtr.Zero && r.IsActiveTab);
+        return sameWindow >= 0 ? sameWindow : _results.FindIndex(r => r.Hwnd == keep.Hwnd && r.Hwnd != IntPtr.Zero);
+    }
+
+    /// <summary>
+    /// While the startup pass reads windows, an open search window updates itself (at most every 0.7 s),
+    /// keeping what's typed and what's selected.
+    /// </summary>
+    private void OnStartupProgress()
+    {
+        if (!IsVisible || _liveRefresh.IsEnabled) return;
+        _liveRefresh.Start();
+    }
+
+    private void RefreshKeepingSelection()
+    {
+        _liveRefresh.Stop();
+        if (!IsVisible) return;
+        var selected = SelectedIndex >= 0 && SelectedIndex < _results.Count ? _results[SelectedIndex] : null;
+        RunSearch(selected);
     }
 
     private void UpdateSeedButton(bool idleView)

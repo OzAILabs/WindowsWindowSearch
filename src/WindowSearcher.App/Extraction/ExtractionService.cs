@@ -83,6 +83,9 @@ internal sealed class ExtractionService : IDisposable
         _thread.Start();
     }
 
+    /// <summary>A job finished (whatever it found, even nothing); raised on the UI thread.</summary>
+    public event Action<IntPtr, JobKind>? JobDone;
+
     public void Schedule(ExtractionJob job)
     {
         lock (_gate)
@@ -170,6 +173,12 @@ internal sealed class ExtractionService : IDisposable
             {
                 Log.Error($"Extraction failed for {job.ProcessName} '{job.Caption}'", ex);
                 if (IsTimeout(ex)) StateFor(job.Hwnd).Timeouts++;
+            }
+            finally
+            {
+                // After the job's result (posted first), so listeners see its tabs and text.
+                var done = job;
+                _ui.BeginInvoke(() => JobDone?.Invoke(done.Hwnd, done.Kind));
             }
         }
     }
