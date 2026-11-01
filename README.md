@@ -30,13 +30,15 @@ launcher, or the **Windows Window Search Help** Start menu shortcut. Update it w
 | `Extraction/ExtractionService` | A single background thread. Waits ~700 ms after you focus a window or switch tabs, then reads its text and saves a screenshot. A one-time pass at startup covers windows that were already open: Edge tab lists first (a few seconds), then each window in full. The launcher shows its progress (`Reading open windows N of M…`), refreshes itself meanwhile, and holds back the tab-scan link until it's done. |
 | `Extraction/UiaReader` | UI Automation reads the Edge/Chrome tab strip (`EdgeTab`) and address bar (`OmniboxViewViews`) by walking only the browser's own interface; it reaches into the active page (`RootWebArea`) only when that page's text is due, because that switches on Edge's accessibility support for the page. For other apps it reads documents, edit fields and labels. |
 | `Extraction/OcrService` | Built-in Windows OCR on the screenshot when an app exposes little text. Apps with slow UI Automation are switched to OCR only and remembered in settings. |
-| `Core/SearchIndex` | SQLite FTS5 (word stems plus prefixes) with highlighted snippets. |
+| `Core/SearchIndex` | SQLite FTS5 (word stems plus prefixes) with highlighted snippets, in an encrypted database. |
+| `Services/SecureStore` | Sets up the encryption at startup and seals preview files. Anything the current key can't read, or that isn't encrypted, is deleted and rebuilt, because the index is only a cache. |
 | `Search/SearchService` | Merges live windows and tabs (fuzzy title match) with full-text hits and ranks them by relevance, then recency. |
 
 **Limit:** Edge only exposes the page text of each window's *active* tab. A tab is searchable by its
 content once you have viewed it; tabs you haven't viewed since the app started match by title only.
 Text and previews persist, so a tab stays searchable after Edge puts it to sleep, and closed tabs
-remain findable (Enter reopens the URL) for `RetentionDays`.
+remain findable for `RetentionDays`. Closed tabs are marked **CLOSED** with a dimmed preview, because they're
+a saved copy: Enter only opens the address again, which may show something different or ask you to sign in.
 
 **Scan tabs** (tray menu, or the link in the launcher's status bar) closes that gap on demand.
 It switches through every Edge tab that has no saved text or preview yet, reads and captures each one,
@@ -52,7 +54,7 @@ Tray → **Settings…** opens a settings window. Everything is stored in `%LOCA
 
 - `Hotkey`: for example `"Ctrl+Alt+Space"` or `"Win+Shift+F"`.
 - `ExcludedProcesses`: listed by title only, never captured or read. Password managers are excluded by default.
-- `ExcludedDomains`: pages on these domains (and their subdomains) are never captured or indexed.
+- `ExcludedDomains`: pages on these domains (and their subdomains) are never captured or indexed. Starts with common banking, investing, payment, tax, credit, health and sign-in sites (`AppSettings.StarterExcludedDomains`). Removing one keeps it removed.
 - `OcrOnlyProcesses`: apps read only through screenshots and OCR (filled in automatically for slow apps).
 - `IndexPrivateWindows`: also capture and index InPrivate windows (tray → **Include InPrivate windows**).
 - `ReadTabsWithoutPages`: read Edge's tabs and address bar without touching pages (default `true`; `false` = the 1.0.4 method).
@@ -64,10 +66,22 @@ Tray → **Settings…** opens a settings window. Everything is stored in `%LOCA
 ## Privacy
 
 Everything stays on this machine in `%LOCALAPPDATA%\WindowSearcher` (index, previews, log), outside
-OneDrive. Password fields are skipped, text from closed windows is deleted, and closed tabs expire after
-`RetentionDays`. InPrivate windows are listed by title only unless you turn on **Include InPrivate
-windows**. That's useful when InPrivate is a second sign-in, but it keeps a local record of those pages.
-**Tray → Clear index** wipes the index and all previews.
+OneDrive, and the app makes no network connections. Password fields are skipped, text from closed windows is
+deleted, and closed tabs expire after `RetentionDays`. InPrivate windows are listed by title only unless you
+turn on **Include InPrivate windows**. That's useful when InPrivate is a second sign-in, but it keeps a local
+record of those pages. **Tray → Clear index** wipes the index and all previews.
+
+- **Encrypted at rest:** the index (SQLite3 Multiple Ciphers) and previews (AES-GCM) use a random key that
+  Windows protects for your account (`index.key`, DPAPI). The files are useless if copied to another PC or read
+  by another account.
+- **What encryption doesn't cover:** anything running as you while you're signed in can ask Windows for the
+  key, as the app itself does. Settings, the window position and the log aren't encrypted; the log leaves out
+  window titles and addresses.
+- **Excluded by default:** password managers, plus the starter list of sensitive sites. A tab whose address
+  can't be read isn't captured, because it could be on an excluded site. Adding a site or app to the exclusions
+  also deletes what's already saved for it.
+- **Upgrading from before 1.0.14:** the old unencrypted index and previews are deleted at first start and
+  rebuilt. That removes the files, but doesn't guarantee the old data is gone from the disk itself.
 
 ## Install
 
@@ -80,10 +94,11 @@ The MSI installs per-machine to `C:\Program Files\Windows Window Search` (it ask
 approval), adds a Start menu shortcut and an Add/Remove Programs entry, and closes a running copy
 before upgrading or uninstalling. The app is self-contained, so no .NET install is needed.
 
-- **New release:** bump `Version` in `Directory.Build.props` and rebuild; the new MSI upgrades in place.
+- **New release:** bump `Version` in `Directory.Build.props` and commit, then push a matching tag (`git tag v1.0.14`, `git push origin v1.0.14`). GitHub tests it, builds the MSI and publishes it with its SHA-256 on the repo's Releases page. A tag with a suffix (`v1.0.14-rc.1`) publishes a prerelease. The new MSI upgrades in place.
+- **Every push** to any branch is built and tested by GitHub (`.github/workflows`).
 - **Uninstall:** use Add/Remove Programs. Your index and settings in `%LOCALAPPDATA%\WindowSearcher` are
   kept. Delete that folder to remove them.
-- Every released MSI is kept in `releases\` (not in git; they're 70 MB each).
+- Releases from 1.0.14 on are on the GitHub Releases page. Older MSIs are only in `releases\` on the development PC (not in git; they're 70 MB each).
 - The MSI isn't code-signed, so Windows SmartScreen may warn before running it.
 - The installer uses WiX 5.0.2 (MS-RL). WiX 6+ is under a maintenance-fee EULA, so don't upgrade it without checking.
 

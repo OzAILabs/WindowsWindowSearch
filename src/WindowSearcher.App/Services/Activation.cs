@@ -77,7 +77,7 @@ internal static class WindowActivator
         }
         catch (Exception ex)
         {
-            Log.Error($"Could not open {url}", ex);
+            Log.Error("Could not reopen a closed tab", ex);
         }
     }
 }

@@ -93,6 +93,10 @@ internal static class Theme
         // Search window title bar (the drag handle): visibly different from the window body.
         Set(resources, "TitleBarBrush", light ? "#D9E6F4" : "#263447");
         Set(resources, "TitleBarHoverBrush", light ? "#C8DAEE" : "#30445E");
+        // Closed tabs: marks that it's a saved copy, not something Enter switches to.
+        Set(resources, "ClosedBadgeBrush", light ? "#9A5B00" : "#FFC266");
+        Set(resources, "ClosedBadgeTextBrush", light ? "#FFFFFF" : "#241600");
+        Set(resources, "ClosedBannerBrush", light ? "#FFF4E0" : "#3A2C12");
     }
 
     private static void Set(ResourceDictionary resources, string key, string color)

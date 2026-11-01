@@ -100,7 +100,7 @@ internal static class WindowCapture
         return maxR - minR < 10 && maxG - minG < 10 && maxB - minB < 10;
     }
 
-    /// <summary>Saves a downscaled JPEG and returns its path. File names are unique per capture.</summary>
+    /// <summary>Saves a downscaled, encrypted JPEG and returns its path. File names are unique per capture.</summary>
     public static string SaveThumbnail(Bitmap bmp, string docKey)
     {
         var scale = Math.Min(1.0, Math.Min((double)ThumbMaxWidth / bmp.Width, (double)ThumbMaxHeight / bmp.Height));
@@ -114,10 +114,12 @@ internal static class WindowCapture
             g.DrawImage(bmp, 0, 0, w, h);
         }
         var name = Convert.ToHexString(SHA1.HashData(Encoding.UTF8.GetBytes(docKey)))[..16];
-        var path = Path.Combine(AppPaths.Thumbs, $"{name}_{DateTime.UtcNow.Ticks:x}.jpg");
+        var path = Path.Combine(AppPaths.Thumbs, $"{name}_{DateTime.UtcNow.Ticks:x}.bin");
         using var args = new EncoderParameters(1);
         args.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, 72L);
-        thumb.Save(path, JpegCodec, args);
+        using var jpeg = new MemoryStream();
+        thumb.Save(jpeg, JpegCodec, args);
+        File.WriteAllBytes(path, SecureStore.Seal(jpeg.ToArray()));
         return path;
     }
 

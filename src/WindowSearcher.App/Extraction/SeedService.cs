@@ -342,10 +342,11 @@ internal sealed class SeedService
 
             var url = ready.Url;
             if (url is not null && !SearchService.IsWebUrl(url)) return Outcome.Skipped; // edge://, new tab, etc.
-            if (settings.IsUrlExcluded(url)) return Outcome.Skipped;
+            // An unreadable address could be on an excluded site.
+            if (url is null || settings.IsUrlExcluded(url)) return Outcome.Skipped;
 
             var title = ready.ActiveTitle ?? tab.Title;
-            var key = url is not null ? $"url:{url}" : $"tab:{hwnd}:{title}";
+            var key = $"url:{url}";
             var text = string.Empty;
             if (screenshotOnly)
                 ct.WaitHandle.WaitOne(ScreenshotOnlyLoadMs); // no way to watch the page load without reading it

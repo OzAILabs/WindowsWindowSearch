@@ -19,6 +19,8 @@ internal partial class LauncherWindow : Window
     // First-run size in DIPs, capped to the screen.
     private const double DefaultWidth = 1180;
     private const double DefaultHeight = 700;
+    private const string KeysForOpenItem = "↑↓ select   ·   Enter open   ·   Tab grid/list   ·   F1 help   ·   Esc close";
+    private const string KeysForClosedTab = "↑↓ select   ·   Enter reopen address   ·   Tab grid/list   ·   F1 help   ·   Esc close";
 
     private readonly AppCore _core;
     private readonly DispatcherTimer _searchDebounce;
@@ -188,9 +190,11 @@ internal partial class LauncherWindow : Window
         // Right after the app starts, the counts are still growing; say so rather than look finished.
         var startup = _core.StartupStatus;
         var reading = startup is { } p ? $"Reading open windows {p.Done} of {p.Total}…   ·   " : string.Empty;
+        var closed = _results.Count(r => r.IsClosed);
+        var closedNote = closed > 0 ? $", {closed} closed" : string.Empty;
         StatusText.Text = reading + (query.Length == 0
             ? $"{windows} windows  ·  {tabs} tabs  ·  {_core.Search.IndexedCount()} indexed{paused}"
-            : $"{_results.Count} results in {sw.ElapsedMilliseconds} ms{paused}");
+            : $"{_results.Count} results{closedNote} in {sw.ElapsedMilliseconds} ms{paused}");
         // The tab scan waits for the startup pass, which is still reading those windows.
         UpdateSeedButton(query.Length == 0 && startup is null);
     }
@@ -334,6 +338,13 @@ internal partial class LauncherWindow : Window
     private void ShowPreview(ResultItem? item)
     {
         var version = ++_previewVersion;
+        var closed = item?.IsClosed == true;
+        ClosedBanner.Visibility = closed ? Visibility.Visible : Visibility.Collapsed;
+        KeyHint.Text = closed ? KeysForClosedTab : KeysForOpenItem;
+        PreviewEmptyText.Text = closed
+            ? "No preview was saved for this tab."
+            : "No preview yet. One is saved the first time you view this window or tab.";
+        PreviewImage.Opacity = closed ? 0.55 : 1;
         PreviewImage.Source = null;
         PreviewTitle.Text = item?.Title ?? string.Empty;
         PreviewUrl.Text = item?.Url ?? item?.Subtitle ?? string.Empty;

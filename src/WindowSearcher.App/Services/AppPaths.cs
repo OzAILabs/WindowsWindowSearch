@@ -8,6 +8,10 @@ internal static class AppPaths
 
     public static readonly string Database = Path.Combine(Root, "index.db");
     public static readonly string Thumbs = Path.Combine(Root, "thumbs");
+
+    /// <summary>The encryption key for the index and previews, wrapped by Windows for this account.</summary>
+    public static readonly string Keys = Path.Combine(Root, "index.key");
+
     public static readonly string Settings = Path.Combine(Root, "settings.json");
     public static readonly string Log = Path.Combine(Root, "log.txt");
 

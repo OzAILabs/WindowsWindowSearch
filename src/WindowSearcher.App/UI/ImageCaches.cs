@@ -7,7 +7,7 @@ using System.Windows.Media.Imaging;
 
 namespace WindowSearcher.App.UI;
 
-/// <summary>Decodes preview JPEGs off the UI thread at the size they're shown. Cleared when the launcher hides.</summary>
+/// <summary>Decrypts and decodes previews off the UI thread at the size they're shown. Cleared when the launcher hides.</summary>
 internal static class ThumbnailLoader
 {
     private static readonly ConcurrentDictionary<(string, int), BitmapSource> Cache = new();
@@ -20,7 +20,7 @@ internal static class ThumbnailLoader
         if (Cache.TryGetValue((path, decodeWidth), out var cached)) return cached;
         try
         {
-            var bytes = File.ReadAllBytes(path);
+            var bytes = Services.SecureStore.Open(File.ReadAllBytes(path));
             var img = new BitmapImage();
             img.BeginInit();
             img.CacheOption = BitmapCacheOption.OnLoad;
@@ -32,7 +32,8 @@ internal static class ThumbnailLoader
             Cache[(path, decodeWidth)] = img;
             return (BitmapSource?)img;
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or NotSupportedException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or NotSupportedException
+                                       or System.Security.Cryptography.CryptographicException)
         {
             return null;
         }

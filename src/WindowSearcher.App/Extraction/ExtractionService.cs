@@ -121,7 +121,7 @@ internal sealed class ExtractionService : IDisposable
     private void Run()
     {
         using var reader = new UiaReader(UiaTimeout);
-        using var index = new SearchIndex(AppPaths.Database);
+        using var index = new SearchIndex(AppPaths.Database, SecureStore.DatabaseKey);
         var ocr = new OcrService();
         if (!ocr.IsAvailable) Log.Info("OCR unavailable: no OCR language installed for the user profile.");
 
@@ -171,7 +171,7 @@ internal sealed class ExtractionService : IDisposable
             }
             catch (Exception ex)
             {
-                Log.Error($"Extraction failed for {job.ProcessName} '{job.Caption}'", ex);
+                Log.Error($"Extraction failed for {job.ProcessName}", ex);
                 if (IsTimeout(ex)) StateFor(job.Hwnd).Timeouts++;
             }
             finally
@@ -201,7 +201,7 @@ internal sealed class ExtractionService : IDisposable
         if (job.Kind == JobKind.Foreground && Win32.GetForegroundWindow() != hwnd) return;
         if (Win32.IsHungAppWindow(hwnd))
         {
-            Log.Info($"Skipped hung window {job.ProcessName} '{job.Caption}'");
+            Log.Info($"Skipped hung window {job.ProcessName}");
             return;
         }
 
@@ -240,7 +240,9 @@ internal sealed class ExtractionService : IDisposable
             key = $"win:{hwnd}:{job.Pid}";
         }
 
-        var sensitive = job.Sensitive || settings.IsUrlExcluded(url);
+        // A tab whose address can't be read could be on an excluded site, so it waits until it can be.
+        var unknownAddress = kind == DocKind.Tab && url is null;
+        var sensitive = job.Sensitive || unknownAddress || settings.IsUrlExcluded(url);
         if (sensitive)
         {
             Post(new ExtractionResult(hwnd, browser?.Tabs, null));

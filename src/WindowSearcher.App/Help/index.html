@@ -337,7 +337,7 @@
             </div>
             <div class="row">
               <span class="app" style="background:linear-gradient(135deg,#1fa2e8,#35c16f)"></span>
-              <div><div class="t">Pricing | Model API</div><div class="s">Edge · example.com · closed tab, Enter reopens it · 2 d ago</div><div class="snip">…input <b>tokens</b> <b>cost</b> less when cached…</div></div>
+              <div><div class="t"><span style="background:#9a5b00;color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;margin-right:6px">CLOSED</span>Pricing | Model API</div><div class="s">Edge · example.com · not open · 2 d ago</div><div class="snip">…input <b>tokens</b> <b>cost</b> less when cached…</div></div>
             </div>
           </div>
           <div class="preview">
@@ -352,7 +352,7 @@
       </div>
 
       <div class="callouts">
-        <div><b>Result line</b>The app, the site, and when you last looked at it. <em>minimized</em> and <em>closed tab</em> tell you what Enter will do.</div>
+        <div><b>Result line</b>The app, the site, and when you last looked at it. <em>minimized</em> and <em>CLOSED</em> tell you what Enter will do.</div>
         <div><b>Snippet</b>Where your words appear in the page, highlighted. Titles and URLs match too.</div>
         <div><b>Preview</b>The screenshot saved the last time the window or tab was on screen.</div>
       </div>
@@ -364,7 +364,7 @@
         <tr><td><em>minimized</em></td><td>Enter restores the window.</td></tr>
         <tr><td><em>not viewed yet</em></td><td>Open, but you haven't looked at it since the app started, so only its title is searchable and there's no preview.</td></tr>
         <tr><td><em>scanned, not viewed</em></td><td>A <a href="#tabs">tab scan</a> read this tab and saved a preview, but you haven't opened it yourself.</td></tr>
-        <tr><td><em>closed tab, Enter reopens it</em></td><td>The tab is gone but its text is still in the index. Enter opens its address in a new tab.</td></tr>
+        <tr><td><em>CLOSED</em>, <em>not open</em></td><td>The tab is gone and you're looking at a saved copy. Enter opens its address in a new tab, so the page may look different or ask you to sign in.</td></tr>
       </table></div>
 
       <h3>Moving and resizing</h3>
@@ -428,7 +428,7 @@
       <div class="note"><strong>Hands off while it runs</strong>Any key press or mouse movement stops the scan right away and restores your tabs. You can also stop it from the tray menu. Tabs that were asleep use more memory for a while after the scan, until Edge puts them back to sleep.</div>
 
       <h3>Closed tabs</h3>
-      <p>When you close a tab, its text stays searchable for 7 days (you can change this). It shows as <em>closed tab</em>, and Enter reopens its address in Edge.</p>
+      <p>When you close a tab, its text stays searchable for 7 days (you can change this), so you can still find something you read earlier. It's marked <em>CLOSED</em> with a dimmed preview because it's only a saved copy. Enter can't bring the tab back: it opens the address again, and what loads may look different or ask you to sign in. Think of it as a reminder of where something was, not a way back to it.</p>
 
       <h3>InPrivate windows</h3>
       <p>InPrivate windows are listed by title but aren't read or captured, unless you turn on <b>Include InPrivate windows</b> in the tray menu or Settings. That's useful if you use InPrivate for a second sign-in, such as an admin account, but it keeps a local record of those pages.</p>
@@ -488,7 +488,7 @@
         <tr><td>Include InPrivate windows</td><td>Read and capture InPrivate windows too.</td><td>Off</td></tr>
         <tr><td>Keep closed tabs searchable for</td><td>Days before a closed tab's text and preview are deleted.</td><td>7 days</td></tr>
         <tr><td>Apps never captured or read</td><td>Program names, one per line, without <code>.exe</code>. They still appear by title.</td><td>Password managers</td></tr>
-        <tr><td>Sites never captured or indexed</td><td>Domains, one per line. Subdomains are included, so <code>bank.com</code> also covers <code>www.bank.com</code>.</td><td>None</td></tr>
+        <tr><td>Sites never captured or indexed</td><td>Domains, one per line. Subdomains are included, so <code>bank.com</code> also covers <code>www.bank.com</code>. What's already saved for a site you add is deleted.</td><td>Common banking, investing, payment, tax, credit, health and sign-in sites</td></tr>
       </table></div>
 
       <h3>Indexing</h3>
@@ -524,7 +524,8 @@
       <h2>Privacy and your data</h2>
       <ul>
         <li><b>Nothing leaves your PC.</b> The app makes no network connections. The index, previews, settings and log are stored in <code>%LOCALAPPDATA%\WindowSearcher</code>, in your own profile and outside OneDrive.</li>
-        <li><b>Password fields are never read.</b> Password managers are excluded by default.</li>
+        <li><b>Saved text and previews are encrypted.</b> The key is protected by Windows for your account, so the files are useless if copied to another PC or opened by another account. This doesn't stop a program running as you while you're signed in, because it can ask Windows for the key the same way this app does.</li>
+        <li><b>Sensitive places are skipped.</b> Password fields are never read. Password managers and common banking, investing, payment, tax, credit, health and sign-in sites are excluded by default, and you can edit both lists in Settings. A tab whose address can't be read isn't captured, in case it's on an excluded site.</li>
         <li><b>InPrivate windows are skipped</b> unless you choose to include them.</li>
         <li><b>Old data expires.</b> Text from closed windows is removed, and closed tabs are deleted after the retention period.</li>
         <li><b>You're in control.</b> Exclude apps and sites in Settings, pause indexing at any time, or wipe everything with <b>Clear index and previews</b>.</li>

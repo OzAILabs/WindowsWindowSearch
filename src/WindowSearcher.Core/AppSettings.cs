@@ -6,7 +6,27 @@ namespace WindowSearcher.Core;
 public sealed class AppSettings
 {
     /// <summary>Settings format of this release. Older files are brought up to date once when loaded.</summary>
-    public const int CurrentVersion = 2;
+    public const int CurrentVersion = 3;
+
+    /// <summary>Password managers that are never read, unless the user removes them.</summary>
+    public static readonly IReadOnlyList<string> StarterExcludedProcesses =
+        ["KeePass", "KeePassXC", "1Password", "Bitwarden", "Dashlane", "NordPass", "Enpass", "keeperpasswordmanager"];
+
+    /// <summary>Banking, investing, payment, tax, credit, health and sign-in sites that are never read, unless the user removes them.</summary>
+    public static readonly IReadOnlyList<string> StarterExcludedDomains =
+    [
+        "chase.com", "bankofamerica.com", "wellsfargo.com", "citi.com", "citibank.com", "capitalone.com", "usbank.com",
+        "pnc.com", "truist.com", "td.com", "tdbank.com", "ally.com", "americanexpress.com", "discover.com",
+        "navyfederal.org", "usaa.com", "sofi.com",
+        "fidelity.com", "schwab.com", "vanguard.com", "etrade.com", "morganstanley.com", "merrilledge.com",
+        "robinhood.com", "coinbase.com", "kraken.com", "binance.com",
+        "paypal.com", "venmo.com", "cash.app", "wise.com", "zellepay.com",
+        "irs.gov", "ssa.gov", "turbotax.intuit.com", "hrblock.com",
+        "experian.com", "equifax.com", "transunion.com", "creditkarma.com",
+        "mychart.com", "healthcare.gov", "kp.org",
+        "bitwarden.com", "1password.com", "lastpass.com", "dashlane.com", "keepersecurity.com", "nordpass.com",
+        "login.live.com", "login.microsoftonline.com", "accounts.google.com", "appleid.apple.com",
+    ];
 
     /// <summary>Settings format the file was written with (missing in files from 1.0.12 and earlier).</summary>
     public int SettingsVersion { get; set; } = CurrentVersion;
@@ -15,7 +35,7 @@ public sealed class AppSettings
     public string Hotkey { get; set; } = "Ctrl+Alt+Space";
 
     /// <summary>Process names (without .exe) that are listed by title only: no screenshots, no text.</summary>
-    public List<string> ExcludedProcesses { get; set; } = ["KeePass", "KeePassXC", "1Password", "Bitwarden"];
+    public List<string> ExcludedProcesses { get; set; } = [.. StarterExcludedProcesses];
 
     /// <summary>
     /// Apps read only through screenshots + OCR because their UI Automation is slow. The app adds
@@ -44,7 +64,7 @@ public sealed class AppSettings
     public bool ReadTabsWithoutPages { get; set; } = true;
 
     /// <summary>Domains whose pages are never captured or indexed (subdomains included).</summary>
-    public List<string> ExcludedDomains { get; set; } = [];
+    public List<string> ExcludedDomains { get; set; } = [.. StarterExcludedDomains];
 
     /// <summary>Days to keep text and previews of closed browser tabs (so they can be found and reopened).</summary>
     public int RetentionDays { get; set; } = 7;
@@ -153,9 +173,18 @@ public sealed class AppSettings
         if (fromVersion < 2 && ScreenshotOnlyDomains.Count == 1 &&
             string.Equals(ScreenshotOnlyDomains[0].Trim(), "admin.example.com", StringComparison.OrdinalIgnoreCase))
             ScreenshotOnlyDomains = [];
+        // 3 (1.0.14): the starter exclusions are added once, so one the user removes afterwards stays removed.
+        if (fromVersion < 3)
+        {
+            ExcludedProcesses = AddMissing(ExcludedProcesses, StarterExcludedProcesses);
+            ExcludedDomains = AddMissing(ExcludedDomains, StarterExcludedDomains);
+        }
         SettingsVersion = CurrentVersion;
         return true;
     }
+
+    private static List<string> AddMissing(List<string> list, IReadOnlyList<string> additions) =>
+        [.. list, .. additions.Where(a => !list.Contains(a, StringComparer.OrdinalIgnoreCase))];
 
     public bool IsProcessExcluded(string processName) =>
         ExcludedProcesses.Any(p => string.Equals(p, processName, StringComparison.OrdinalIgnoreCase));

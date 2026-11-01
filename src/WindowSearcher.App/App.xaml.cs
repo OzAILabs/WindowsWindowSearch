@@ -64,6 +64,7 @@ public partial class App : Application
         };
 
         Theme.Apply(Resources);
+        SecureStore.Initialize();
         _core = new AppCore(background);
 
         new Thread(() =>

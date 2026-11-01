@@ -91,8 +91,8 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Text="Sites never captured or indexed" Style="{StaticResource FieldLabel}" VerticalAlignment="Top" Margin="0,4,0,0" />
                     <StackPanel Grid.Column="1">
-                        <TextBox x:Name="ExcludedSitesBox" Style="{StaticResource MultiLineBox}" />
-                        <TextBlock Style="{StaticResource Hint}" Text="One domain per line (e.g. bank.com); subdomains are included." />
+                        <TextBox x:Name="ExcludedSitesBox" Style="{StaticResource MultiLineBox}" Height="150" />
+                        <TextBlock Style="{StaticResource Hint}" Text="One domain per line (e.g. bank.com); subdomains are included. Starts with common banking, payment, tax, health and sign-in sites. What's already saved for a site you add here is deleted." />
                     </StackPanel>
                 </Grid>
 

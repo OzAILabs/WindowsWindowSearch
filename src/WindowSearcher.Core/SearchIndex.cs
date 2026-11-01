@@ -67,7 +67,9 @@ public sealed class SearchIndex : IDisposable
 
     private readonly SqliteConnection _db;
 
-    public SearchIndex(string dbPath)
+    /// <param name="dbPath">The database file.</param>
+    /// <param name="key">Encrypts the database. Null leaves it unencrypted.</param>
+    public SearchIndex(string dbPath, string? key = null)
     {
         _db = new SqliteConnection(new SqliteConnectionStringBuilder
         {
@@ -75,10 +77,44 @@ public sealed class SearchIndex : IDisposable
             Mode = SqliteOpenMode.ReadWriteCreate,
             Cache = SqliteCacheMode.Private,
             Pooling = false,
+            Password = key ?? string.Empty,
         }.ToString());
-        _db.Open();
-        Exec("PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL; PRAGMA busy_timeout=2000;");
-        EnsureSchema();
+        try
+        {
+            _db.Open();
+            Exec("PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL; PRAGMA busy_timeout=2000;");
+            EnsureSchema();
+        }
+        catch
+        {
+            _db.Dispose(); // don't keep the file locked: callers may delete it
+            throw;
+        }
+    }
+
+    /// <summary>True for a database file written without encryption (releases before 1.0.14).</summary>
+    public static bool IsUnencrypted(string dbPath)
+    {
+        if (!File.Exists(dbPath)) return false;
+        ReadOnlySpan<byte> plainHeader = "SQLite format 3"u8;
+        using var file = new FileStream(dbPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        Span<byte> header = stackalloc byte[plainHeader.Length];
+        return file.Read(header) == header.Length && header.SequenceEqual(plainHeader);
+    }
+
+    /// <summary>True if the file doesn't exist yet or this key opens it.</summary>
+    public static bool CanOpen(string dbPath, string key)
+    {
+        if (!File.Exists(dbPath)) return true;
+        try
+        {
+            using var index = new SearchIndex(dbPath, key);
+            return true;
+        }
+        catch (SqliteException)
+        {
+            return false;
+        }
     }
 
     private void EnsureSchema()

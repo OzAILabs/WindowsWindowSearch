@@ -25,7 +25,7 @@ public sealed class SettingsUpdateTests : IDisposable
 
         // Written back, so a site the user adds afterwards stays.
         var saved = File.ReadAllText(_path);
-        Assert.Contains("\"SettingsVersion\": 2", saved);
+        Assert.Contains($"\"SettingsVersion\": {AppSettings.CurrentVersion}", saved);
         s.ScreenshotOnlyDomains = ["admin.example.com"];
         s.Save(_path);
         Assert.Equal(["admin.example.com"], AppSettings.Load(_path).ScreenshotOnlyDomains);
@@ -45,5 +45,38 @@ public sealed class SettingsUpdateTests : IDisposable
         var s = AppSettings.Load(_path);
         Assert.Equal("Win+Shift+F", s.Hotkey);
         Assert.Equal(["mmc"], s.OcrOnlyProcesses);
+    }
+
+    [Theory]
+    [InlineData("https://secure.chase.com/web/auth", true)]
+    [InlineData("https://www.paypal.com/myaccount", true)]
+    [InlineData("https://login.microsoftonline.com/common", true)]
+    [InlineData("https://notchase.com/", false)]
+    [InlineData("https://github.com/OzAILabs", false)]
+    public void New_settings_exclude_sensitive_sites(string url, bool excluded) =>
+        Assert.Equal(excluded, new AppSettings().IsUrlExcluded(url));
+
+    [Fact]
+    public void Older_files_get_the_starter_exclusions_and_keep_their_own()
+    {
+        File.WriteAllText(_path, """{ "SettingsVersion": 2, "ExcludedDomains": [ "example.com", "CHASE.com" ], "ExcludedProcesses": [ "mstsc" ] }""");
+        var s = AppSettings.Load(_path);
+
+        Assert.Contains("example.com", s.ExcludedDomains);
+        Assert.True(s.IsUrlExcluded("https://paypal.com/"));
+        Assert.Single(s.ExcludedDomains, d => d.Equals("chase.com", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains("mstsc", s.ExcludedProcesses);
+        Assert.True(s.IsProcessExcluded("Bitwarden"));
+    }
+
+    [Fact]
+    public void A_starter_exclusion_the_user_removes_stays_removed()
+    {
+        File.WriteAllText(_path, """{ "SettingsVersion": 2 }""");
+        var s = AppSettings.Load(_path);
+        s.ExcludedDomains.Remove("paypal.com");
+        s.Save(_path);
+
+        Assert.False(AppSettings.Load(_path).IsUrlExcluded("https://paypal.com/"));
     }
 }

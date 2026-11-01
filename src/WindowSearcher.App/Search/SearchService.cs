@@ -23,7 +23,7 @@ internal sealed class SearchService : IDisposable
         _tracker = tracker;
         _docs = docs;
         _settings = settings;
-        _index = new SearchIndex(dbPath);
+        _index = new SearchIndex(dbPath, Services.SecureStore.DatabaseKey);
     }
 
     /// <summary>Every open window and tab, most recently used first.</summary>

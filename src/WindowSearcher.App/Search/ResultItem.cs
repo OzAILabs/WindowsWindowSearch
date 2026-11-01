@@ -40,6 +40,9 @@ internal sealed class ResultItem : INotifyPropertyChanged
 
     public bool HasSnippet => !string.IsNullOrEmpty(Snippet);
 
+    /// <summary>Not open any more: what's shown is a saved copy, and Enter only opens the address again.</summary>
+    public bool IsClosed => Kind == ResultKind.ClosedTab;
+
     public string Subtitle
     {
         get
@@ -47,7 +50,7 @@ internal sealed class ResultItem : INotifyPropertyChanged
             var parts = new List<string>(4) { AppName };
             var host = Host(Url);
             if (host is not null) parts.Add(host);
-            if (Kind == ResultKind.ClosedTab) parts.Add("closed tab, Enter reopens it");
+            if (IsClosed) parts.Add("not open");
             else if (IsMinimized) parts.Add("minimized");
             parts.Add(Age());
             return string.Join("  ·  ", parts);

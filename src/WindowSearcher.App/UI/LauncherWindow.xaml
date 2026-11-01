@@ -74,6 +74,20 @@
             <Setter Property="Width" Value="264" />
         </Style>
 
+        <Style x:Key="ClosedBadge" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource ClosedBadgeBrush}" />
+            <Setter Property="CornerRadius" Value="3" />
+            <Setter Property="Padding" Value="6,1" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Visibility" Value="{Binding IsClosed, Converter={StaticResource BoolToVisibility}}" />
+        </Style>
+        <Style x:Key="ClosedBadgeText" TargetType="TextBlock">
+            <Setter Property="Text" Value="CLOSED" />
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{DynamicResource ClosedBadgeTextBrush}" />
+        </Style>
+
         <DataTemplate x:Key="ResultTemplate">
             <Grid Margin="10,8">
                 <Grid.ColumnDefinitions>
@@ -82,8 +96,16 @@
                 </Grid.ColumnDefinitions>
                 <Image Source="{Binding Icon}" Width="20" Height="20" VerticalAlignment="Top" Margin="0,2,0,0"
                        RenderOptions.BitmapScalingMode="HighQuality" />
+                <TextBlock Text="&#xE81C;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="16"
+                           Foreground="{DynamicResource ClosedBadgeBrush}" VerticalAlignment="Top" Margin="2,3,0,0"
+                           Visibility="{Binding IsClosed, Converter={StaticResource BoolToVisibility}}" />
                 <StackPanel Grid.Column="1">
-                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="14" TextTrimming="CharacterEllipsis" />
+                    <DockPanel>
+                        <Border DockPanel.Dock="Left" Style="{StaticResource ClosedBadge}" Margin="0,0,8,0">
+                            <TextBlock Style="{StaticResource ClosedBadgeText}" />
+                        </Border>
+                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="14" TextTrimming="CharacterEllipsis" />
+                    </DockPanel>
                     <TextBlock Text="{Binding Subtitle}" Foreground="{DynamicResource SubTextBrush}" FontSize="12"
                                TextTrimming="CharacterEllipsis" Margin="0,1,0,0" />
                     <TextBlock ui:Highlight.Text="{Binding Snippet}" Foreground="{DynamicResource SubTextBrush}" FontSize="12"
@@ -97,9 +119,22 @@
             <StackPanel Margin="8">
                 <Border Height="150" Background="{DynamicResource PanelBrush}" CornerRadius="4">
                     <Grid>
-                        <Image Source="{Binding Thumbnail}" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" />
+                        <Image Source="{Binding Thumbnail}" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality">
+                            <Image.Style>
+                                <Style TargetType="Image">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsClosed}" Value="True">
+                                            <Setter Property="Opacity" Value="0.55" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Image.Style>
+                        </Image>
                         <Image Source="{Binding Icon}" Width="32" Height="32" Opacity="0.5"
                                Visibility="{Binding ThumbPath, Converter={StaticResource NullToVisible}}" />
+                        <Border Style="{StaticResource ClosedBadge}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="6">
+                            <TextBlock Style="{StaticResource ClosedBadgeText}" />
+                        </Border>
                     </Grid>
                 </Border>
                 <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
@@ -185,17 +220,24 @@
                     BorderBrush="{DynamicResource BorderBrush}" Padding="20">
                 <Grid>
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <Image x:Name="PreviewImage" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" />
-                    <StackPanel x:Name="PreviewEmpty" VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <Border x:Name="ClosedBanner" Visibility="Collapsed" Background="{DynamicResource ClosedBannerBrush}"
+                            BorderBrush="{DynamicResource ClosedBadgeBrush}" BorderThickness="1" CornerRadius="4"
+                            Padding="12,8" Margin="0,0,0,14">
+                        <TextBlock TextWrapping="Wrap">
+                            <Run Text="This tab is closed." FontWeight="SemiBold" /><Run Text=" You're looking at a saved copy. Enter opens the address again, so the page may look different or ask you to sign in." />
+                        </TextBlock>
+                    </Border>
+                    <Image x:Name="PreviewImage" Grid.Row="1" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" />
+                    <StackPanel x:Name="PreviewEmpty" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">
                         <Image x:Name="PreviewIcon" Width="48" Height="48" Opacity="0.6" />
                         <TextBlock x:Name="PreviewEmptyText" Foreground="{DynamicResource SubTextBrush}" Margin="0,12,0,0"
-                                   TextAlignment="Center" TextWrapping="Wrap" MaxWidth="360"
-                                   Text="No preview yet. One is saved the first time you view this window or tab." />
+                                   TextAlignment="Center" TextWrapping="Wrap" MaxWidth="360" />
                     </StackPanel>
-                    <StackPanel Grid.Row="1" Margin="0,16,0,0">
+                    <StackPanel Grid.Row="2" Margin="0,16,0,0">
                         <TextBlock x:Name="PreviewTitle" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap" />
                         <TextBlock x:Name="PreviewUrl" Foreground="{DynamicResource AccentBrush}" TextTrimming="CharacterEllipsis"
                                    Margin="0,4,0,0" />
@@ -240,8 +282,7 @@
                         </Button.Template>
                     </Button>
                 </StackPanel>
-                <TextBlock x:Name="KeyHint" HorizontalAlignment="Right" Foreground="{DynamicResource SubTextBrush}" FontSize="12"
-                           Text="↑↓ select   ·   Enter open   ·   Tab grid/list   ·   F1 help   ·   Esc close" />
+                <TextBlock x:Name="KeyHint" HorizontalAlignment="Right" Foreground="{DynamicResource SubTextBrush}" FontSize="12" />
             </Grid>
         </Border>
     </Grid>

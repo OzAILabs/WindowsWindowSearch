@@ -29,7 +29,7 @@ internal sealed class AppCore : IDisposable
     {
         _settings = AppSettings.Load(AppPaths.Settings);
         UiaReader.PageFreeBrowserReads = _settings.ReadTabsWithoutPages;
-        using (var index = new SearchIndex(AppPaths.Database)) Docs.Load(index.GetSummaries());
+        using (var index = new SearchIndex(AppPaths.Database, SecureStore.DatabaseKey)) Docs.Load(index.GetSummaries());
 
         Tracker = new WindowTracker();
         Search = new SearchService(Tracker, Docs, AppPaths.Database, () => _settings);
@@ -44,6 +44,7 @@ internal sealed class AppCore : IDisposable
         Tracker.Closed += OnWindowsClosed;
         Tracker.Start();
         RemoveDocsOfClosedWindows();
+        RemoveExcludedDocs();
         StartupSweep();
 
         _hotkey = new HotkeyManager(() => Launcher.Toggle());
@@ -98,7 +99,7 @@ internal sealed class AppCore : IDisposable
                     var select = _interactive.Run(r => r.SelectTab(item.Hwnd, item.Title, item.TabIndex));
                     var finished = await Task.WhenAny(select, Task.Delay(1500));
                     if (finished != select || await select < 0)
-                        Log.Info($"Could not select tab '{item.Title}'");
+                        Log.Info("Could not select a tab");
                 }
                 WindowActivator.Activate(item.Hwnd);
                 break;
@@ -179,7 +180,7 @@ internal sealed class AppCore : IDisposable
         Extraction.EnqueueMaintenance(index =>
         {
             index.Clear();
-            foreach (var f in Directory.EnumerateFiles(AppPaths.Thumbs, "*.jpg")) WindowCapture.TryDelete(f);
+            foreach (var f in Directory.EnumerateFiles(AppPaths.Thumbs)) WindowCapture.TryDelete(f);
         });
         Extraction.ResetState();
         Log.Info("Index cleared by user");
@@ -428,6 +429,15 @@ internal sealed class AppCore : IDisposable
         DeleteDocs(stale);
     }
 
+    /// <summary>Deletes what's already saved for sites and apps that are excluded now.</summary>
+    private void RemoveExcludedDocs()
+    {
+        var settings = _settings;
+        var keys = Docs.All.Where(d => settings.IsUrlExcluded(d.Url)).Select(d => d.Key).ToList();
+        keys.AddRange(Tracker.Windows.Where(w => settings.IsProcessExcluded(w.ProcessName)).Select(w => w.WindowDocKey));
+        DeleteDocs(keys);
+    }
+
     private void PurgeOldTabs()
     {
         var cutoff = DateTimeOffset.Now.AddDays(-Math.Max(1, _settings.RetentionDays));
@@ -456,6 +466,7 @@ internal sealed class AppCore : IDisposable
         var previousHotkey = _settings.Hotkey;
         _settings = AppSettings.Load(AppPaths.Settings);
         UiaReader.PageFreeBrowserReads = _settings.ReadTabsWithoutPages;
+        RemoveExcludedDocs();
         if (_settings.Hotkey != previousHotkey && !_hotkey.Register(_settings.Hotkey))
         {
             _tray.ShowBalloon("Hotkey unavailable", $"{_settings.Hotkey} is invalid or already in use. Keeping {previousHotkey}.");
