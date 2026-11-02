@@ -18,6 +18,7 @@
   <img src="https://img.shields.io/badge/runs-100%25%20offline-2EA44F" alt="Runs 100% offline">
   <img src="https://img.shields.io/badge/saved%20data-encrypted-8250DF" alt="Saved data is encrypted">
   <img src="https://img.shields.io/badge/browser%20extension-not%20needed-6E7781" alt="No browser extension needed">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow" alt="MIT license"></a>
 </p>
 
 <p align="center">
@@ -133,6 +134,12 @@ dotnet test tests/WindowSearcher.Tests
 ```
 
 See the [developer notes](docs/DEVELOPMENT.md) for how it works, all settings, and how releases are built.
+
+## License
+
+Free and open source under the [MIT license](LICENSE). It includes components under their own licenses, listed in [third-party notices](THIRD-PARTY-NOTICES.md).
+
+Windows and Microsoft Edge are trademarks of Microsoft. This project isn't affiliated with or endorsed by Microsoft.
 
 ---
 

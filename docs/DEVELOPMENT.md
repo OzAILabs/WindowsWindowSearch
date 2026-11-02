@@ -99,6 +99,7 @@ before upgrading or uninstalling. The app is self-contained, so no .NET install 
 - Releases from 1.0.16 on are on the GitHub Releases page. Older MSIs aren't published (they're 70 MB each, so `releases\` isn't in git).
 - The MSI isn't code-signed, so Windows SmartScreen may warn before running it.
 - The installer uses WiX 5.0.2 (MS-RL). WiX 6+ is under a maintenance-fee EULA, so don't upgrade it without checking.
+- **Dependencies:** when one is added or changed, update `THIRD-PARTY-NOTICES.md`. It ships with the app, next to `LICENSE`.
 
 ## Going back to an earlier version
 
