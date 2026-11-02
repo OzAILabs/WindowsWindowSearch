@@ -45,8 +45,9 @@
   <ItemGroup>
     <!-- User guide (tray menu Help, F1 in the launcher, the help switch), installed as loose files next to the exe. -->
     <Content Include="Help\index.html" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
-    <Content Include="Assets\logo.png" Link="Help\logo.png" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
-    <Content Include="Assets\branding.png" Link="Help\branding.png" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
+    <!-- None, not Content: WPF looks for a Content file on disk instead of the embedded Resource, and the About images go blank. -->
+    <None Update="Assets\logo.png" Link="Help\logo.png" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
+    <None Update="Assets\branding.png" Link="Help\branding.png" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
   </ItemGroup>
 
 </Project>
