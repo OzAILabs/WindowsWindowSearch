@@ -96,7 +96,7 @@ before upgrading or uninstalling. The app is self-contained, so no .NET install 
 - **Every push** to any branch is built and tested by GitHub (`.github/workflows`).
 - **Uninstall:** use Add/Remove Programs. Your index and settings in `%LOCALAPPDATA%\WindowSearcher` are
   kept. Delete that folder to remove them.
-- Releases from 1.0.14 on are on the GitHub Releases page. Older MSIs are only in `releases\` on the development PC (not in git; they're 70 MB each).
+- Releases from 1.0.16 on are on the GitHub Releases page. Older MSIs aren't published (they're 70 MB each, so `releases\` isn't in git).
 - The MSI isn't code-signed, so Windows SmartScreen may warn before running it.
 - The installer uses WiX 5.0.2 (MS-RL). WiX 6+ is under a maintenance-fee EULA, so don't upgrade it without checking.
 

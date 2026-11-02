@@ -52,8 +52,7 @@ public sealed class AppSettings
     /// <summary>
     /// Domains indexed from a screenshot + OCR instead of reading the page (subdomains included), for
     /// sites that react badly when read: reading a page switches on Edge's accessibility support for it.
-    /// Empty by default. Up to 1.0.12 it held admin.example.com, whose app list sometimes flickers,
-    /// but that flicker also happens without this app, and reading the page indexes all of it.
+    /// Empty by default.
     /// </summary>
     public List<string> ScreenshotOnlyDomains { get; set; } = [];
 
@@ -168,11 +167,6 @@ public sealed class AppSettings
     private bool Migrate(int fromVersion)
     {
         if (fromVersion >= CurrentVersion) return false;
-        // 2 (1.0.13): admin portal pages are read instead of OCR'd. Only a list that still holds exactly the old
-        // default is cleared; one the user edited is left as it is.
-        if (fromVersion < 2 && ScreenshotOnlyDomains.Count == 1 &&
-            string.Equals(ScreenshotOnlyDomains[0].Trim(), "admin.example.com", StringComparison.OrdinalIgnoreCase))
-            ScreenshotOnlyDomains = [];
         // 3 (1.0.14): the starter exclusions are added once, so one the user removes afterwards stays removed.
         if (fromVersion < 3)
         {

@@ -9,26 +9,20 @@ public sealed class SettingsUpdateTests : IDisposable
     public void Dispose() => File.Delete(_path);
 
     [Fact]
-    public void New_settings_read_admin_portal_pages()
+    public void New_settings_read_every_page()
     {
         Assert.Empty(new AppSettings().ScreenshotOnlyDomains);
         Assert.False(new AppSettings().IsScreenshotOnly("https://admin.example.com/#home"));
     }
 
     [Fact]
-    public void File_from_an_older_release_with_the_old_default_is_updated_once()
+    public void File_from_an_older_release_is_updated_once()
     {
         File.WriteAllText(_path, """{ "Hotkey": "Ctrl+Alt+Space", "ScreenshotOnlyDomains": [ "admin.example.com" ] }""");
         var s = AppSettings.Load(_path);
-        Assert.Empty(s.ScreenshotOnlyDomains);
+        Assert.Equal(["admin.example.com"], s.ScreenshotOnlyDomains);
         Assert.Equal(AppSettings.CurrentVersion, s.SettingsVersion);
-
-        // Written back, so a site the user adds afterwards stays.
-        var saved = File.ReadAllText(_path);
-        Assert.Contains($"\"SettingsVersion\": {AppSettings.CurrentVersion}", saved);
-        s.ScreenshotOnlyDomains = ["admin.example.com"];
-        s.Save(_path);
-        Assert.Equal(["admin.example.com"], AppSettings.Load(_path).ScreenshotOnlyDomains);
+        Assert.Contains($"\"SettingsVersion\": {AppSettings.CurrentVersion}", File.ReadAllText(_path));
     }
 
     [Fact]
