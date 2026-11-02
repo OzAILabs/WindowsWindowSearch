@@ -72,6 +72,8 @@ internal partial class LauncherWindow : Window
 
     private void OnCloseClick(object sender, RoutedEventArgs e) => HideLauncher();
 
+    private void OnModeClick(object sender, RoutedEventArgs e) => SetMode(!_gridMode);
+
     /// <summary>Dragging the title bar or status bar moves the window (buttons and links keep their clicks).</summary>
     private void OnDragAreaMouseDown(object sender, MouseButtonEventArgs e)
     {
@@ -258,7 +260,7 @@ internal partial class LauncherWindow : Window
         ListPanel.Visibility = grid ? Visibility.Collapsed : Visibility.Visible;
         GridList.Visibility = grid ? Visibility.Visible : Visibility.Collapsed;
         GridList.ItemsSource = grid ? _results : null;
-        ModeLabel.Text = grid ? "Grid view" : "List view";
+        ModeButton.Content = grid ? "Show list" : "Show grid";
         if (grid && ResultsList.SelectedIndex >= 0) Select(ResultsList.SelectedIndex);
     }
 

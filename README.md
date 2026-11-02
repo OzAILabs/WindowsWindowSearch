@@ -8,8 +8,8 @@ preview of each one, and switches straight to it. No browser extension is needed
 
 - **Ctrl+Alt+Space** opens the launcher. With no text, it lists windows and tabs, most recent first.
   Type to search, for example `token cost`.
-- **↑/↓** select, **Enter** switch to it (restores the window and selects the tab), **Tab** toggles the
-  thumbnail grid, **F1** opens the user guide, **Esc** closes.
+- **↑/↓** select, **Enter** switch to it (restores the window and selects the tab), **Tab** or the title bar's
+  **Show grid** / **Show list** button toggles the thumbnail grid, **F1** opens the user guide, **Esc** closes.
 - Drag the shaded title bar (or the status bar) to move the launcher and its edges to resize it; × closes it. It reopens where it was left
   (`launcher.json` in the data folder), shrunk to fit if that screen is smaller. It falls back to the pointer's
   screen if that one is gone. **Settings → Reset size and position** forgets it.
