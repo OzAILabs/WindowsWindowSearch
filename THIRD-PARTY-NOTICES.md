@@ -5,7 +5,7 @@ Windows Window Search is released under the [MIT license](LICENSE). It includes 
 | Component | What it does here | License |
 |---|---|---|
 | [FlaUI](https://github.com/FlaUI/FlaUI) | Reads windows and tabs through UI Automation | MIT |
-| [Interop.UIAutomationClient](https://github.com/Roemer/Interop.UIAutomationClient) | UI Automation interop, used by FlaUI | MIT |
+| [Interop.UIAutomationClient](https://github.com/Roemer/UIAutomation-Interop) | UI Automation interop, used by FlaUI | MIT |
 | [SQLite3 Multiple Ciphers](https://github.com/utelle/SQLite3MultipleCiphers) | Encrypted SQLite database engine | MIT |
 | [SQLitePCLRaw](https://github.com/ericsink/SQLitePCL.raw) | Connects .NET to the SQLite engine | Apache-2.0 |
 | [.NET runtime and libraries (including Microsoft.Data.Sqlite, System.Management and ProtectedData)](https://github.com/dotnet/runtime) | The app is self-contained, so these are included in it | MIT |
