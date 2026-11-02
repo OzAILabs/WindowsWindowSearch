@@ -1,134 +1,142 @@
-# Windows Window Search
+<p align="center">
+  <img src="docs/logo-mark.png" width="230" alt="Windows Window Search logo: a magnifying glass over a stack of windows">
+</p>
 
-A Windows background app for finding the right window or browser tab when you have dozens open.
-It searches window titles, tab titles **and the text inside** windows and Edge tabs, shows a saved
-preview of each one, and switches straight to it. No browser extension is needed.
+<h1 align="center">Windows Window Search</h1>
 
-## Use
+<p align="center">
+  <strong>Too many windows and tabs open? Type what you remember and jump straight to it.</strong>
+</p>
 
-- **Ctrl+Alt+Space** opens the launcher. With no text, it lists windows and tabs, most recent first.
-  Type to search, for example `token cost`.
-- **↑/↓** select, **Enter** switch to it (restores the window and selects the tab), **Tab** or the title bar's
-  **Show grid** / **Show list** button toggles the thumbnail grid, **F1** opens the user guide, **Esc** closes.
-- Drag the shaded title bar (or the status bar) to move the launcher and its edges to resize it; × closes it. It reopens where it was left
-  (`launcher.json` in the data folder), shrunk to fit if that screen is smaller. It falls back to the pointer's
-  screen if that one is gone. **Settings → Reset size and position** forgets it.
-- Clicking the tray icon toggles the launcher. The tray menu has pause (the app then doesn't touch other
-  apps at all), start with Windows, **Settings…** (a settings window), **Help** (the user guide), **About**, log and clear index.
-- Launching the exe again opens the launcher of the running instance. `--grid` opens the grid view,
-  `--query <text>` opens it pre-filled, `--settings` opens settings, `--about` the About window and `--help` the user guide.
+<p align="center">
+  Searches window titles, browser tabs and the text inside them, shows you a preview, and takes you there.<br>
+  Everything stays on your PC, encrypted.
+</p>
 
-The user guide is [src/WindowSearcher.App/Help/index.html](src/WindowSearcher.App/Help/index.html). It's installed next to the exe
-(`Help\index.html`, with the logo and branding images) and opens in the default browser from the tray menu, F1 in the
-launcher, or the **Windows Window Search Help** Start menu shortcut. Update it when behavior or settings change.
+<p align="center">
+  <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4" alt="Windows 10 and 11">
+  <img src="https://img.shields.io/badge/runs-100%25%20offline-2EA44F" alt="Runs 100% offline">
+  <img src="https://img.shields.io/badge/saved%20data-encrypted-8250DF" alt="Saved data is encrypted">
+  <img src="https://img.shields.io/badge/browser%20extension-not%20needed-6E7781" alt="No browser extension needed">
+</p>
 
-## How it works
+<p align="center">
+  <a href="https://github.com/OzAILabs/WindowsWindowSearch/releases/latest"><strong>Download</strong></a>
+  &nbsp;·&nbsp; <a href="#what-it-does">What it does</a>
+  &nbsp;·&nbsp; <a href="#get-started">Get started</a>
+  &nbsp;·&nbsp; <a href="#your-privacy">Your privacy</a>
+  &nbsp;·&nbsp; <a href="docs/DEVELOPMENT.md">Developer notes</a>
+</p>
 
-| Piece | What it does |
+<p align="center">
+  <img src="docs/screenshots/search.png" width="900" alt="Searching for 'token cost' finds six windows and tabs by the text inside them, with a preview of the selected page">
+</p>
+
+<p align="center"><sub>All screenshots show the real app with made-up websites.</sub></p>
+
+## Why it exists
+
+You know you read it somewhere. It's in one of 40 tabs across five windows, and the tab title is cut off to "Pric…". Alt-Tab gives you a wall of tiny thumbnails, and browser tab search only covers one browser and can't look inside your other apps.
+
+Press **Ctrl+Alt+Space**, type a word you remember from the page, and press **Enter**. You're there.
+
+## What it does
+
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>🔎 Searches inside, not just titles</h3>
+      Finds words in the text of your windows and Edge tabs. When an app doesn't share its text, built-in Windows OCR reads it from a screenshot.
+    </td>
+    <td width="50%" valign="top">
+      <h3>🖼️ Shows you before you switch</h3>
+      Every result has a saved preview and a highlighted snippet, so you can tell the right page from five similar ones.
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+      <h3>⚡ Takes you straight there</h3>
+      Enter brings up the window, restores it if it's minimized, and selects the exact tab. Results appear in milliseconds as you type.
+    </td>
+    <td valign="top">
+      <h3>🧩 Needs no browser extension</h3>
+      It reads Edge's tabs through Windows' own accessibility features. Nothing to install in your browser.
+    </td>
+  </tr>
+</table>
+
+### See everything at a glance
+
+Press **Tab** or click **Show grid** for large previews of everything open. It's handy when you remember what a page *looked* like.
+
+<p align="center">
+  <img src="docs/screenshots/grid.png" width="900" alt="Grid view showing large previews of nine open browser windows">
+</p>
+
+### Find what you just closed
+
+Closed tabs stay searchable for 7 days. They're clearly marked, because it's a saved copy: Enter opens the address again, and the page may have changed or ask you to sign in.
+
+<p align="center">
+  <img src="docs/screenshots/closed-tab.png" width="900" alt="A closed tab marked CLOSED, with a dimmed preview and a banner explaining that it's a saved copy">
+</p>
+
+## Get started
+
+1. **[Download the latest MSI](https://github.com/OzAILabs/WindowsWindowSearch/releases/latest)** and run it. It needs administrator approval, and because it isn't code-signed, Windows SmartScreen may warn you first.
+2. **Launch Windows Window Search.** It runs quietly in the system tray, behind a blue magnifying glass icon.
+3. **Press Ctrl+Alt+Space** and start typing.
+
+Requires 64-bit Windows 10 (version 2004 or later) or Windows 11. There's nothing else to install.
+
+> **Shortcut not working?** Another app may be using it, such as Claude's Quick Entry. Choose a different one under tray icon → **Settings…**. If the tray icon is hidden, turn it on in Windows Settings under Personalization → Taskbar → Other system tray icons.
+
+### Keyboard
+
+| Key | What it does |
 |---|---|
-| `Tracking/WindowTracker` | Keeps the Alt-Tab window list current. Window events for focus, minimize and title change; a cheap `EnumWindows` pass every 3 s catches windows opening and closing. |
-| `Extraction/ExtractionService` | A single background thread. Waits ~700 ms after you focus a window or switch tabs, then reads its text and saves a screenshot. A one-time pass at startup covers windows that were already open: Edge tab lists first (a few seconds), then each window in full. The launcher shows its progress (`Reading open windows N of M…`), refreshes itself meanwhile, and holds back the tab-scan link until it's done. |
-| `Extraction/UiaReader` | UI Automation reads the Edge/Chrome tab strip (`EdgeTab`) and address bar (`OmniboxViewViews`) by walking only the browser's own interface; it reaches into the active page (`RootWebArea`) only when that page's text is due, because that switches on Edge's accessibility support for the page. For other apps it reads documents, edit fields and labels. |
-| `Extraction/OcrService` | Built-in Windows OCR on the screenshot when an app exposes little text. Apps with slow UI Automation are switched to OCR only and remembered in settings. |
-| `Core/SearchIndex` | SQLite FTS5 (word stems plus prefixes) with highlighted snippets, in an encrypted database. |
-| `Services/SecureStore` | Sets up the encryption at startup and seals preview files. Anything the current key can't read, or that isn't encrypted, is deleted and rebuilt, because the index is only a cache. |
-| `Search/SearchService` | Merges live windows and tabs (fuzzy title match) with full-text hits and ranks them by relevance, then recency. |
+| <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>Space</kbd> | Open or close the search window |
+| <kbd>↑</kbd> <kbd>↓</kbd> | Choose a result |
+| <kbd>Enter</kbd> | Switch to it |
+| <kbd>Tab</kbd> | Switch between list and grid |
+| <kbd>F1</kbd> | Open the user guide |
+| <kbd>Esc</kbd> | Close the search window |
 
-**Limit:** Edge only exposes the page text of each window's *active* tab. A tab is searchable by its
-content once you have viewed it; tabs you haven't viewed since the app started match by title only.
-Text and previews persist, so a tab stays searchable after Edge puts it to sleep, and closed tabs
-remain findable for `RetentionDays`. Closed tabs are marked **CLOSED** with a dimmed preview, because they're
-a saved copy: Enter only opens the address again, which may show something different or ask you to sign in.
+## Your privacy
 
-**Scan tabs** (tray menu, or the link in the launcher's status bar) closes that gap on demand.
-It switches through every Edge tab that has no saved text or preview yet, reads and captures each one,
-and then returns each window to the tab you had open. Minimized windows are shown briefly without taking
-focus so their tabs get a preview, then minimized again (`SeedRestoreMinimized`). Up to 4 windows run at once (`SeedMaxWindows`). Within each window
-the next few tabs are woken ahead of time, so sleeping tabs reload while the current one is being read,
-with at most 8 tabs loading at once (`SeedMaxLoadingTabs`). Any keyboard or mouse input stops the scan
-and restores your tabs. Sleeping tabs it wakes use more memory until Edge puts them back to sleep.
+An app that reads your screen has to earn your trust, so here's exactly what it does.
 
-## Settings
+- **Nothing leaves your PC.** The app makes no network connections. There's no account, cloud or telemetry.
+- **Saved data is encrypted.** Saved text and previews use a key that Windows protects for your account, so the files are useless if copied to another PC or opened by another account.
+- **Sensitive places are skipped.** Password fields, password managers and InPrivate windows are left alone, along with common banking, payment, tax, health and sign-in sites. You can edit the lists.
+- **Old data goes away.** Text from closed apps is deleted right away, and closed tabs after 7 days. You can also wipe everything or pause indexing at any time.
 
-Tray → **Settings…** opens a settings window. Everything is stored in `%LOCALAPPDATA%\WindowSearcher\settings.json`, which can also be edited directly (**Open settings file** in the window); changes apply as soon as the file is saved.
+<p align="center">
+  <img src="docs/screenshots/settings.png" width="520" alt="Settings window with the shortcut, privacy options and lists of excluded apps and sites">
+</p>
 
-- `Hotkey`: for example `"Ctrl+Alt+Space"` or `"Win+Shift+F"`.
-- `ExcludedProcesses`: listed by title only, never captured or read. Password managers are excluded by default.
-- `ExcludedDomains`: pages on these domains (and their subdomains) are never captured or indexed. Starts with common banking, investing, payment, tax, credit, health and sign-in sites (`AppSettings.StarterExcludedDomains`). Removing one keeps it removed.
-- `OcrOnlyProcesses`: apps read only through screenshots and OCR (filled in automatically for slow apps).
-- `IndexPrivateWindows`: also capture and index InPrivate windows (tray → **Include InPrivate windows**).
-- `ReadTabsWithoutPages`: read Edge's tabs and address bar without touching pages (default `true`; `false` = the 1.0.4 method).
-- `ScreenshotOnlyDomains`: sites indexed from a screenshot + OCR instead of reading the page, for sites that react badly to Edge's accessibility support (reading a page switches it on). Empty by default.
-- `SettingsVersion`: settings format; older files are updated once when loaded.
-- `SeedMaxWindows`, `SeedMaxLoadingTabs`, `SeedTabTimeoutMs`, `SeedRestoreMinimized`: tab scan speed, load limits and minimized windows.
-- `RetentionDays`, `OcrEnabled`, `CaptureDelayMs`, `ReindexAfterSeconds`, `RecaptureAfterSeconds`, `IndexingPaused`.
+**What encryption can't do:** a program running as you while you're signed in can ask Windows for the same key this app uses. It protects your saved data from being copied elsewhere, not from malware already on your PC.
 
-## Privacy
+## Good to know
 
-Everything stays on this machine in `%LOCALAPPDATA%\WindowSearcher` (index, previews, log), outside
-OneDrive, and the app makes no network connections. Password fields are skipped, text from closed windows is
-deleted, and closed tabs expire after `RetentionDays`. InPrivate windows are listed by title only unless you
-turn on **Include InPrivate windows**. That's useful when InPrivate is a second sign-in, but it keeps a local
-record of those pages. **Tray → Clear index** wipes the index and all previews.
+- **Tabs:** Edge only shares the text of the tab that's showing, so a tab becomes searchable by its text once you've viewed it. Until then it matches by title. **Scan tabs** reads the rest for you on demand.
+- **Browsers:** tab support is built around Edge, and also recognizes Chrome, Brave, Vivaldi and Opera. Firefox appears as a single window.
+- **Resources:** it used about 200 MB of memory and no measurable CPU when idle in testing.
 
-- **Encrypted at rest:** the index (SQLite3 Multiple Ciphers) and previews (AES-GCM) use a random key that
-  Windows protects for your account (`index.key`, DPAPI). The files are useless if copied to another PC or read
-  by another account.
-- **What encryption doesn't cover:** anything running as you while you're signed in can ask Windows for the
-  key, as the app itself does. Settings, the window position and the log aren't encrypted; the log leaves out
-  window titles and addresses.
-- **Excluded by default:** password managers, plus the starter list of sensitive sites. A tab whose address
-  can't be read isn't captured, because it could be on an excluded site. Adding a site or app to the exclusions
-  also deletes what's already saved for it.
-- **Upgrading from before 1.0.14:** the old unencrypted index and previews are deleted at first start and
-  rebuilt. That removes the files, but doesn't guarantee the old data is gone from the disk itself.
+## For developers
 
-## Install
-
-```powershell
-dotnet build installer -c Release
-# -> installer\bin\Release\WindowsWindowSearch-<version>-x64.msi
-```
-
-The MSI installs per-machine to `C:\Program Files\Windows Window Search` (it asks for administrator
-approval), adds a Start menu shortcut and an Add/Remove Programs entry, and closes a running copy
-before upgrading or uninstalling. The app is self-contained, so no .NET install is needed.
-
-- **New release:** bump `Version` in `Directory.Build.props` and commit, then push a matching tag (`git tag v1.0.14`, `git push origin v1.0.14`). GitHub tests it, builds the MSI and publishes it with its SHA-256 on the repo's Releases page. A tag with a suffix (`v1.0.14-rc.1`) publishes a prerelease. The new MSI upgrades in place.
-- **Every push** to any branch is built and tested by GitHub (`.github/workflows`).
-- **Uninstall:** use Add/Remove Programs. Your index and settings in `%LOCALAPPDATA%\WindowSearcher` are
-  kept. Delete that folder to remove them.
-- Releases from 1.0.14 on are on the GitHub Releases page. Older MSIs are only in `releases\` on the development PC (not in git; they're 70 MB each).
-- The MSI isn't code-signed, so Windows SmartScreen may warn before running it.
-- The installer uses WiX 5.0.2 (MS-RL). WiX 6+ is under a maintenance-fee EULA, so don't upgrade it without checking.
-
-## Going back to an earlier version
-
-- **Without reinstalling:** each behavior change since 1.0.4 can be switched off in settings.
-  - `"ReadTabsWithoutPages": false` restores the 1.0.4 way of reading Edge windows.
-- **Installing an older release:** from 1.0.6 on, any MSI in `releases\` can be run directly to go
-  back to that version. To go back to 1.0.5 or earlier, uninstall first (Add/Remove Programs), because
-  those installers refuse to replace a newer version.
-- **Source:** the project is in git with a tag per release (`git tag`). For example,
-  `git checkout v1.0.5 -- .` restores that release's files, and rebuilding gives its installer.
-
-## Build and test
+Written in C# with .NET 10 and WPF. Full-text search uses SQLite FTS5 in an encrypted database.
 
 ```powershell
 dotnet build WindowSearcher.slnx
 dotnet test tests/WindowSearcher.Tests
-src/WindowSearcher.App/bin/Debug/net10.0-windows10.0.22621.0/WindowSearcher.exe
 ```
 
-Requires the .NET 10 SDK on Windows 10 19041 or later.
+See the [developer notes](docs/DEVELOPMENT.md) for how it works, all settings, and how releases are built.
 
-## Measured on the development machine (about 35 windows)
+---
 
-- Idle CPU: not measurable over 30 s.
-- Private memory: about 125 MB (219 MB working set, including shared system DLLs).
-- Search: 5–36 ms.
-- Opening the launcher: 144–346 ms in a freshly started process, including one-time startup compilation.
-- Work per window: Edge 40–700 ms, most apps 100–600 ms, OCR 70–750 ms.
-- The startup pass over all windows takes about 20 s in the background.
-
-Per-window timings are written to `log.txt`.
+<p align="center">
+  <a href="https://github.com/OzAILabs"><img src="src/WindowSearcher.App/Assets/branding.png" width="96" alt="OzAILabs logo"></a><br>
+  <sub>Made by <a href="https://github.com/OzAILabs">OzAILabs</a></sub>
+</p>

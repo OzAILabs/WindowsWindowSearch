@@ -4,6 +4,10 @@ namespace WindowSearcher.App.Services;
 internal static class AppPaths
 {
     public static readonly string Root =
+#if DEBUG
+        // tools\readme-screenshots keeps its fake index and settings away from the real ones.
+        Environment.GetEnvironmentVariable("WWS_DEMO_DATA") ??
+#endif
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "WindowSearcher");
 
     public static readonly string Database = Path.Combine(Root, "index.db");

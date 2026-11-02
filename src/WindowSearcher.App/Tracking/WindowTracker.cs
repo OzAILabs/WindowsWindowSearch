@@ -150,6 +150,10 @@ internal sealed class WindowTracker : IDisposable
         if (!IsAltTabWindow(hwnd, out var className, out var title)) return null;
         Win32.GetWindowThreadProcessId(hwnd, out var pid);
         if (pid == _ownPid || pid == 0) return null;
+#if DEBUG
+        // tools\readme-screenshots: only the demo browser's windows exist, so nothing real can reach a screenshot.
+        if (int.TryParse(Environment.GetEnvironmentVariable("WWS_DEMO_PID"), out var demoPid) && pid != demoPid) return null;
+#endif
 
         // UWP apps live inside ApplicationFrameHost; the real process owns the CoreWindow child.
         if (className == "ApplicationFrameWindow")
